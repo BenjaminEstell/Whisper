@@ -14,11 +14,12 @@
 %   Modifies: None
 %
 %   Effects: Plays the audio file specified in "filename" at
-%   "volume" + "callibratedBaseline"
+%   "volume" - "callibratedBaseline"
 %
-%   Returns: 0 on success. 1 on error
+%   Returns: error: 0 on success. 1 on error. Also returns the number of
+%   audio samples,
 
-function error = PlaySoundFromFile(filename, volume, callibratedBaseline)
+function [error, numSamples] = PlaySoundFromFile(filename, volume, callibratedBaseline)
     arguments
         filename char = []
         volume (1,1) {mustBePositive, mustBeReal} = 50
@@ -27,10 +28,12 @@ function error = PlaySoundFromFile(filename, volume, callibratedBaseline)
 
     % define variables
     error = 0;
-    % load from file
-    [y, Fs] = audioread(filename);
-    % monkey with the volume
-    % play the sound
-    sound(y, Fs);
+    % load sound samples from file
+    [soundDataSamples, Fs] = audioread(filename);
+    numSamples = size(soundDataSamples, 1);
+    % convert to bin representation
+    
+    % play sound to user
+    PlaySound(soundDataSamples, Fs, volume, callibratedBaseline);
 
 end

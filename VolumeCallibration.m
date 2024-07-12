@@ -16,3 +16,5 @@ end
 % we will add our desired audio level to the user's 0% baseline to produce
 % the actual volume level that the sound generator uses to drive the audio
 % signal.
+% to play the callibration tone, use play_callibration_sound and subsequent
+% functions
