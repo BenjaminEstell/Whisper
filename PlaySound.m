@@ -27,13 +27,12 @@ function PlaySound(soundDataSamples, samplingRate, volume, callibratedBaseline)
     end
 
     
-    % TODO: Apply Volume Callibration
-    %gain = 10^((volume-callibratedBaseline)/20);
-    %scaledSoundData = gain*(soundDataSamples ./ rms(soundDataSamples));
+    % Apply Volume Callibration
+    gain = callibratedBaseline * 10^(volume/20);
+
+    scaledSoundData = (gain / 100) *(soundDataSamples);
 
     % play the sound
-    sound(soundDataSamples, samplingRate);
-    %pause(4);
-    %sound(scaledSoundData, samplingRate);
+    sound(scaledSoundData, samplingRate);
 
 end
