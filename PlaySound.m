@@ -3,7 +3,7 @@
 %   Arguments:
 %       - soundDataSamples: an n x 1 vector of sound data
 %       - samplingRate: a 1x1 scalar representing the audio sampling rate
-%       - volume: a 1x1 scalar representing the app-level volume
+%       - volume: a 1x1 scalar representing the app-level volume in dB
 %       - callibratedBaseline: a 1x1 scalar representing the callibrated
 %       system volume
 %   
@@ -27,10 +27,13 @@ function PlaySound(soundDataSamples, samplingRate, volume, callibratedBaseline)
     end
 
     
-    % Apply Volume Callibration
-    gain = callibratedBaseline * 10^(volume/20);
+    % Apply Volume Callibration. Convert volume change to dB change
+    % callibrated baseline = the dB level when a 1 amplitude signal is silent
+    % volume = the dB level we want to play the sound at
+    % convert dB to intensity
+    gain = 10^(callibratedBaseline/20) + 10^(volume/20);
 
-    scaledSoundData = (gain / 100) *(soundDataSamples);
+    scaledSoundData = gain/10 *(soundDataSamples ./ rms(soundDataSamples));
 
     % play the sound
     sound(scaledSoundData, samplingRate);

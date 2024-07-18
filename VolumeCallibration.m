@@ -34,7 +34,7 @@ classdef volumeCallibration < matlab.apps.AppBase
 
         % Update the gain
         function updateGain(app, event)
-            app.System.test.callibratedBaseline = app.VolumeSlider.Value;
+            app.System.test.callibratedBaseline = app.VolumeSlider.Value - 50;
         end
     end
 

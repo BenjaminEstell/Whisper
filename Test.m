@@ -20,7 +20,6 @@ classdef Test < matlab.apps.AppBase
         SoundCardSoundLabel         matlab.ui.control.Label
         System                      Whisper
         numTrials                   int32
-        numBins                     int32
         numSounds                   int32
         currentTrial                int32
         currentSound                int32
@@ -115,6 +114,9 @@ classdef Test < matlab.apps.AppBase
             app.SoundCardSoundCountLabel.Text = 'Sound ' + string(app.currentSound) + ' of ' + string(app.numSounds);
             app.SoundCardSoundLabel.Visible = true;
             app.SoundCardSoundLabel.Text = '/' + app.currentSoundObj.name + '/';
+            
+            % generate the stimulus matrix for the next sound
+            app.currentSoundObj.stimulusMatrix = GenerateStimulusMatrix(app.numTrials, app.currentSoundObj.numBins);
         end
 
 
@@ -133,11 +135,46 @@ classdef Test < matlab.apps.AppBase
         % Plays the human voiced and computer generated sounds
         function PlaySounds(app, event)
             % Play human voiced sound
-            PlaySound(app.currentSoundObj.humanVoicedSoundTimeDomain, app.currentSoundObj.samplingRate, 50, app.callibratedBaseline);
-            % Pause 1.5 seconds
+            PlaySound(app.currentSoundObj.humanVoicedSoundTimeDomain, app.currentSoundObj.samplingRate, 6, app.callibratedBaseline);
+            % Pause 2 seconds
             pause(1.5);
+
             % Play computer generated sound
-            PlaySoundFromRandom(app.currentSoundObj.numSamples, app.currentSoundObj.samplingRate, 65, app.callibratedBaseline);
+            
+            % Get binned representation in frequency domain
+            stimFrequencyDomain = app.currentSoundObj.stimulusMatrix(app.currentTrial, :);
+            binnum = getFreqBins(app.currentSoundObj.samplingRate, app.currentSoundObj.numSamples, app.currentSoundObj.numBins, 20, 20000);
+            % convert stimulus from binned representation to frequency
+            % representation
+            spectFreqDomain = zeros(app.currentSoundObj.numSamples / 2, 1);
+            for ii = 1:app.currentSoundObj.numBins
+                spectFreqDomain(binnum==ii) = abs(stimFrequencyDomain(ii));
+            end
+            figure(1);
+            N = app.currentSoundObj.numBins;
+            ks = 0:N/2;
+            frequencies = (ks*app.currentSoundObj.samplingRate)  / app.currentSoundObj.numBins;
+            stem(spectFreqDomain);
+
+            % Convert stimulus into the time domain
+            phase = 2*pi*(rand(app.currentSoundObj.numSamples/2,size(spectFreqDomain,2))-0.5); % assign random phase to freq spec
+            s = (10.^(spectFreqDomain./10)).*exp(1i*phase); % convert dB to amplitudes
+            ss = [ones(1,size(spectFreqDomain,2)); s; conj(flipud(s))];
+            stim = ifft(ss); % transform from freq to time domain
+            stim = (stim ./ rms(stim)); % Set dB of stimuli
+            figure(2);
+            plot(0:app.currentSoundObj.numSamples, stim);
+
+            % Play sound
+            PlaySound(stim, app.currentSoundObj.samplingRate, 6, app.callibratedBaseline);
+
+            % Plot human voiced sound
+            
+            figure(3)
+            y = abs(fft(app.currentSoundObj.humanVoicedSoundTimeDomain));
+            stem(frequencies, y(1:(N/2)+1));
+            figure(4)
+            plot(0:app.currentSoundObj.numSamples-1, app.currentSoundObj.humanVoicedSoundTimeDomain(1:app.currentSoundObj.numSamples))
         end
     end
 
@@ -153,10 +190,9 @@ classdef Test < matlab.apps.AppBase
             obj.sounds = [];
             obj.patientID = '';
             obj.testID = randi([0, 2^32], 1, 1);
-            obj.numBins = 256;
             obj.startTimestamp = datetime();
             obj.patient = Patient("0");
-            obj.callibratedBaseline = 50;
+            obj.callibratedBaseline = 0;
         end
 
         % Create UIFigure and components
@@ -240,6 +276,7 @@ classdef Test < matlab.apps.AppBase
             app.currentSound = 1;
             app.currentSoundObj = app.sounds{app.currentSound};
             app.currentTrial = 1;
+            app.currentSoundObj.stimulusMatrix = GenerateStimulusMatrix(app.numTrials, app.currentSoundObj.numBins);
 
             % Create SoundCardSoundLabel
             app.SoundCardSoundLabel = uilabel(app.UIFigure);

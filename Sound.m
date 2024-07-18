@@ -8,8 +8,9 @@ classdef Sound
         humanVoicedSoundTimeDomain        
         humanVoicedSoundFrequencyDomain
         samplingRate                        
-        numSamples                          int32
-        stimulusMatrix
+        numSamples                          
+        numBins                             
+        stimulusMatrix                      
         responseVector
         type                                TestType
     end
@@ -34,6 +35,10 @@ classdef Sound
             [obj.humanVoicedSoundTimeDomain, obj.samplingRate] = audioread(filename);
             obj.humanVoicedSoundFrequencyDomain = real(ifft(obj.humanVoicedSoundTimeDomain));
             obj.numSamples = size(obj.humanVoicedSoundTimeDomain, 1);
+            if rem(obj.numSamples, 2) == 1
+                obj.numSamples = obj.numSamples - 1;
+            end
+            obj.numBins = 1000;
         end
     end
 end
