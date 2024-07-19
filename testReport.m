@@ -3,6 +3,7 @@ classdef testReport < matlab.apps.AppBase
     % Properties that correspond to app components
     properties (Access = public)
         UIFigure                      matlab.ui.Figure
+        UIAxes                        matlab.ui.control.UIAxes
         PhonemeTestCompletePanel      matlab.ui.container.Panel
         TestCompletionHomeButton      matlab.ui.control.Button
         ViewTestReportButton          matlab.ui.control.Button
@@ -11,11 +12,11 @@ classdef testReport < matlab.apps.AppBase
         TestReportHomeButton          matlab.ui.control.Button
         bInternalRepresentationPanel  matlab.ui.container.Panel
         PlaySoundButton               matlab.ui.control.Button
-        Image                         matlab.ui.control.Image
         PhonemeListBox                matlab.ui.control.ListBox
         PhonemeListBoxLabel           matlab.ui.control.Label
         System                        Whisper
-        currentSound                  string
+        currentSound                  Sound
+        currentSoundInternalRepresentation
     end
 
     % Callbacks that handle component events
@@ -46,8 +47,35 @@ classdef testReport < matlab.apps.AppBase
         % Value changed function: PhonemeListBox
         function toggleLabel(app, event)
             value = app.PhonemeListBox.Value;
-            app.currentSound = value;
+            % get the current Sound object from the name
+            for ii = 1:length(app.System.test.sounds)
+                sd = app.System.test.sounds{ii};
+                if strcmp(sd.name, value)
+                    app.currentSound = sd;
+                    break;
+                end
+            end
             app.bInternalRepresentationPanel.Title = value + " Internal Representation";
+
+            % Show internal representation frequency chart 
+            binnum = getFreqBins(app.currentSound.samplingRate, app.currentSound.numSamples, app.currentSound.numBins, 20, 20000);
+            % convert stimulus from binned representation to frequency
+            % representation
+            app.currentSoundInternalRepresentation = zeros(app.currentSound.numSamples / 2, 1);
+            for ii = 1:app.currentSound.numBins
+                app.currentSoundInternalRepresentation(binnum==ii) = abs(app.currentSound.internalRepresentation(ii));
+            end
+            stem(app.UIAxes, 0:length(app.currentSoundInternalRepresentation)-1, app.currentSoundInternalRepresentation);
+        end
+
+        function PlayInternalRepresentation(app, event)
+            spectFreqDomain = app.currentSoundInternalRepresentation;
+            phase = 2*pi*(rand(app.currentSound.numSamples/2,size(spectFreqDomain,2))-0.5); % assign random phase to freq spec
+            s = (10.^(spectFreqDomain./10)).*exp(1i*phase); % convert dB to amplitudes
+            ss = [ones(1,size(spectFreqDomain,2)); s; conj(flipud(s))];
+            stim = ifft(ss); % transform from freq to time domain
+            stim = (stim ./ rms(stim)); % Set dB of stimuli
+            PlaySound(stim, app.currentSound.samplingRate, 6, app.System.test.callibratedBaseline);
         end
 
         function listOut = ListConversion(app, listIn)
@@ -100,7 +128,8 @@ classdef testReport < matlab.apps.AppBase
         % Create UIFigure and components
         function createTestReportComponents(app, UIFigure)
             app.UIFigure = UIFigure;
-            app.currentSound = app.System.test.sounds{1}.name;
+            app.currentSound = app.System.test.sounds{1};
+
 
             % Create TestReportPanel
             app.TestReportPanel = uipanel(app.UIFigure);
@@ -125,17 +154,20 @@ classdef testReport < matlab.apps.AppBase
 
             % Create bInternalRepresentationPanel
             app.bInternalRepresentationPanel = uipanel(app.TestReportPanel);
-            app.bInternalRepresentationPanel.Title = string(app.currentSound) + ' Internal Representation';
+            app.bInternalRepresentationPanel.Title = string(app.currentSound.name) + ' Internal Representation';
             app.bInternalRepresentationPanel.FontSize = 14;
             app.bInternalRepresentationPanel.Position = [201 18 747 602];
 
-            % Create Image
-            app.Image = uiimage(app.bInternalRepresentationPanel);
-            app.Image.Position = [8 72 752 491];
-            app.Image.ImageSource = 'Example FFT.jpg';
+            % Create Internal Representation frequency chart
+            app.UIAxes = uiaxes(app.bInternalRepresentationPanel);
+            title(app.UIAxes, 'Frequency Components')
+            xlabel(app.UIAxes, 'Frequency')
+            ylabel(app.UIAxes, 'Amplitude')
+            app.UIAxes.Position = [8 72 752 491];
 
             % Create PlaySoundButton
             app.PlaySoundButton = uibutton(app.bInternalRepresentationPanel, 'push');
+            app.PlaySoundButton.ButtonPushedFcn = createCallbackFcn(app, @PlayInternalRepresentation, true);
             app.PlaySoundButton.FontSize = 14;
             app.PlaySoundButton.Position = [259 10 250 45];
             app.PlaySoundButton.Text = 'Play Sound';
@@ -146,6 +178,8 @@ classdef testReport < matlab.apps.AppBase
             app.TestReportHomeButton.FontSize = 18;
             app.TestReportHomeButton.Position = [16 28 150 45];
             app.TestReportHomeButton.Text = 'Home';
+
+            app.toggleLabel();
         end
     end
 end

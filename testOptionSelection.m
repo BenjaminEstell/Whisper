@@ -179,7 +179,7 @@ classdef testOptionSelection < matlab.apps.AppBase
                         temp = split(app.SelectPhonemesPanel.Children(ii).Text, '/');
                         temp2 = split(temp(2), '/');
                         % construct a Sound object for the sound
-                        newSound = Sound(string(temp2(1)), TestType.phoneme);
+                        newSound = Sound(string(temp2(1)), TestType.phoneme, app.System.test.numTrials);
                         % store the new Sound in the Test
                         app.System.test.sounds{end+1} = newSound;
                     end
@@ -193,7 +193,7 @@ classdef testOptionSelection < matlab.apps.AppBase
                 randomNumberSet = randi([100 1049], 1, app.System.numSounds);
                 % for each random number, construct a Sound object
                 for ii = 1:size(randomNumberSet, 1)
-                    newSound = Sound(string(randomNumberSet(ii)), TestType.cnc);
+                    newSound = Sound(string(randomNumberSet(ii)), TestType.cnc, app.System.test.numTrials);
                     % store the new Sound in the Test
                     app.System.test.sounds{end+1} = newSound;
                 end

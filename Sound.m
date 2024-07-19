@@ -9,18 +9,23 @@ classdef Sound
         humanVoicedSoundFrequencyDomain
         samplingRate                        
         numSamples                          
-        numBins                             
+        numBins 
+        numTrials
         stimulusMatrix                      
         responseVector
         type                                TestType
+        internalRepresentation
     end
 
     methods
         % Class Constructor
-        function obj = Sound(nameIn, typeIn)
+        function obj = Sound(nameIn, typeIn, numTrialsIn)
             obj.name = nameIn;
             obj.type = typeIn;
             obj = obj.getAudio();
+            obj.numTrials = numTrialsIn;
+            obj.responseVector = zeros(obj.numTrials);
+            obj.internalRepresentation = zeros(obj.numBins, 1);
         end
 
          % Loads the audio for the Sound from a file

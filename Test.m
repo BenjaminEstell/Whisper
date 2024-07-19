@@ -63,8 +63,19 @@ classdef Test < matlab.apps.AppBase
         % Button pushed function: NextTrialButton
         % Navigates to the next trial
         function NextTrial(app, event)
+            % save the patient's response in the response vector
+            if app.FButton.Value
+                % Patient selected "similar"
+                app.currentSoundObj.responseVector(app.currentTrial) = 1;
+            elseif app.JButton.Value
+                % Patient selected "not similar"
+                app.currentSoundObj.responseVector(app.currentTrial) = -1;
+            end
             % If we have finished the last trial, move on to the next sound
             if app.currentTrial == app.numTrials
+                % generate the internal representation for this sound
+                app.currentSoundObj.internalRepresentation = GenerateInternalRepresentation(app.currentSoundObj);
+                app.sounds{app.currentSound} = app.currentSoundObj;
                 % if we have finished the last sound, end the test
                 if app.currentSound == app.numSounds
                     app.TestReport();
@@ -91,6 +102,8 @@ classdef Test < matlab.apps.AppBase
             % end the test
             app.endTimestamp = datetime();
             app.duration = app.endTimestamp - app.startTimestamp;
+            % save the test data in the Test object
+            app.System.test = app;
 
             % Build test completion UI
             testReportView = testReport();
@@ -169,11 +182,10 @@ classdef Test < matlab.apps.AppBase
             PlaySound(stim, app.currentSoundObj.samplingRate, 6, app.callibratedBaseline);
 
             % Plot human voiced sound
-            
-            figure(3)
+            figure(3);
             y = abs(fft(app.currentSoundObj.humanVoicedSoundTimeDomain));
             stem(frequencies, y(1:(N/2)+1));
-            figure(4)
+            figure(4);
             plot(0:app.currentSoundObj.numSamples-1, app.currentSoundObj.humanVoicedSoundTimeDomain(1:app.currentSoundObj.numSamples))
         end
     end
@@ -231,7 +243,7 @@ classdef Test < matlab.apps.AppBase
             app.SameLabel.WordWrap = 'on';
             app.SameLabel.FontSize = 14;
             app.SameLabel.Position = [280 279 130 41];
-            app.SameLabel.Text = 'Same';
+            app.SameLabel.Text = 'Similar';
 
             % Create DifferentLabel
             app.DifferentLabel = uilabel(app.PhonemeRecognitionPanel);
@@ -260,7 +272,7 @@ classdef Test < matlab.apps.AppBase
             % Create TestSoundCountLabel
             app.TestSoundCountLabel = uilabel(app.PhonemeRecognitionPanel);
             app.TestSoundCountLabel.FontSize = 14;
-            app.TestSoundCountLabel.Position = [430 647 110 22];
+            app.TestSoundCountLabel.Position = [425 647 115 22];
             app.TestSoundCountLabel.Text = 'Sound ' + string(app.currentSound) + ' of ' + string(app.numSounds);
 
             % Create TestTrialCountLabel
@@ -314,7 +326,7 @@ classdef Test < matlab.apps.AppBase
             app.Label_2.WordWrap = 'on';
             app.Label_2.FontSize = 18;
             app.Label_2.Position = [101 360 811 133];
-            app.Label_2.Text = 'Your task is to determine if the two sounds are almost identical, or not. If they sound almost identical, click the button on the left. If they do not sound almost identical, click the button on the right. When you''re ready to move on, click "next trial." You can also use keyboard shortcuts to make your selection.';
+            app.Label_2.Text = 'Your task is to determine if the two sounds are almost similar, or not. If they sound similar, click the button on the left. If they do not sound similar, click the button on the right. When you''re ready to move on, click "next trial." You can also use keyboard shortcuts to make your selection.';
         end
     end
 end
