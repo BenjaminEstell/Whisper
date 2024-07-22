@@ -20,12 +20,12 @@ function binnum = getFreqBins(samplingRate, numSamples, numBins, minFreq, maxFre
 
 
         % Define Frequency Bin Indices 1 through self.n_bins
-        bintops = round(mels2hz(linspace(hz2mels(minFreq), hz2mels(maxFreq), numBins+1)));
+        %bintops = round(mels2hz(linspace(hz2mels(minFreq), hz2mels(maxFreq), numBins+1)));
+        bintops = linspace(minFreq, maxFreq, numBins+1);
         bin_starts = bintops(1:end-1);
         bin_stops = bintops(2:end); 
-        binnum = zeros(numSamples/2, 1);
-        frequency_vector = linspace(0, samplingRate/2, numSamples/2)';
-
+        binnum = zeros(numSamples, 1);
+        frequency_vector = linspace(0, samplingRate, numSamples)';
         for itor = 1:numBins
             binnum(frequency_vector <= bin_stops(itor) & frequency_vector >= bin_starts(itor)) = itor;
         end

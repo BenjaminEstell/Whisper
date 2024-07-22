@@ -4,7 +4,8 @@ classdef testReport < matlab.apps.AppBase
     properties (Access = public)
         UIFigure                      matlab.ui.Figure
         UIAxes                        matlab.ui.control.UIAxes
-        PhonemeTestCompletePanel      matlab.ui.container.Panel
+        UIAxes2                       matlab.ui.control.UIAxes
+        TestCompletePanel             matlab.ui.container.Panel
         TestCompletionHomeButton      matlab.ui.control.Button
         ViewTestReportButton          matlab.ui.control.Button
         CongratulationsYouvereachedtheendofthetestLabel  matlab.ui.control.Label
@@ -12,8 +13,8 @@ classdef testReport < matlab.apps.AppBase
         TestReportHomeButton          matlab.ui.control.Button
         bInternalRepresentationPanel  matlab.ui.container.Panel
         PlaySoundButton               matlab.ui.control.Button
-        PhonemeListBox                matlab.ui.control.ListBox
-        PhonemeListBoxLabel           matlab.ui.control.Label
+        SoundListBox                  matlab.ui.control.ListBox
+        SoundListBoxLabel             matlab.ui.control.Label
         System                        Whisper
         currentSound                  Sound
         currentSoundInternalRepresentation
@@ -44,9 +45,9 @@ classdef testReport < matlab.apps.AppBase
             app.createTestReportComponents(app.UIFigure);
         end
 
-        % Value changed function: PhonemeListBox
+        % Value changed function: SoundListBox
         function toggleLabel(app, event)
-            value = app.PhonemeListBox.Value;
+            value = app.SoundListBox.Value;
             % get the current Sound object from the name
             for ii = 1:length(app.System.test.sounds)
                 sd = app.System.test.sounds{ii};
@@ -57,15 +58,11 @@ classdef testReport < matlab.apps.AppBase
             end
             app.bInternalRepresentationPanel.Title = value + " Internal Representation";
 
-            % Show internal representation frequency chart 
-            binnum = getFreqBins(app.currentSound.samplingRate, app.currentSound.numSamples, app.currentSound.numBins, 20, 20000);
-            % convert stimulus from binned representation to frequency
-            % representation
-            app.currentSoundInternalRepresentation = zeros(app.currentSound.numSamples / 2, 1);
-            for ii = 1:app.currentSound.numBins
-                app.currentSoundInternalRepresentation(binnum==ii) = abs(app.currentSound.internalRepresentation(ii));
-            end
-            stem(app.UIAxes, 0:length(app.currentSoundInternalRepresentation)-1, app.currentSoundInternalRepresentation);
+            % Update graphs
+            stem(app.UIAxes, real(app.currentSound.internalRepresentation));
+    
+            spect = app.currentSound.getHumanVoicedSoundBinnedRepresentation();
+            stem(app.UIAxes2, real(spect));
         end
 
         function PlayInternalRepresentation(app, event)
@@ -94,14 +91,14 @@ classdef testReport < matlab.apps.AppBase
             app.UIFigure = UIFigure;
             app.System = WhisperIn;
 
-            % Create PhonemeTestCompletePanel
-            app.PhonemeTestCompletePanel = uipanel(app.UIFigure);
-            app.PhonemeTestCompletePanel.Title = string(app.System.test.mode) + ' Test Complete';
-            app.PhonemeTestCompletePanel.FontSize = 14;
-            app.PhonemeTestCompletePanel.Position = [16 16 970 670];
+            % Create TestCompletePanel
+            app.TestCompletePanel = uipanel(app.UIFigure);
+            app.TestCompletePanel.Title = string(app.System.test.mode) + ' Test Complete';
+            app.TestCompletePanel.FontSize = 14;
+            app.TestCompletePanel.Position = [16 16 970 670];
 
             % Create CongratulationsYouvereachedtheendofthetestLabel
-            app.CongratulationsYouvereachedtheendofthetestLabel = uilabel(app.PhonemeTestCompletePanel);
+            app.CongratulationsYouvereachedtheendofthetestLabel = uilabel(app.TestCompletePanel);
             app.CongratulationsYouvereachedtheendofthetestLabel.HorizontalAlignment = 'center';
             app.CongratulationsYouvereachedtheendofthetestLabel.WordWrap = 'on';
             app.CongratulationsYouvereachedtheendofthetestLabel.FontSize = 36;
@@ -110,14 +107,14 @@ classdef testReport < matlab.apps.AppBase
             app.CongratulationsYouvereachedtheendofthetestLabel.Text = {'Congratulations! '; 'You''ve reached the end of the test.'};
 
             % Create ViewTestReportButton
-            app.ViewTestReportButton = uibutton(app.PhonemeTestCompletePanel, 'push');
+            app.ViewTestReportButton = uibutton(app.TestCompletePanel, 'push');
             app.ViewTestReportButton.ButtonPushedFcn = createCallbackFcn(app, @ViewTestReport, true);
             app.ViewTestReportButton.FontSize = 18;
             app.ViewTestReportButton.Position = [360 202 250 55];
             app.ViewTestReportButton.Text = 'View Test Report';
 
             % Create TestCompletionHomeButton
-            app.TestCompletionHomeButton = uibutton(app.PhonemeTestCompletePanel, 'push');
+            app.TestCompletionHomeButton = uibutton(app.TestCompletePanel, 'push');
             app.TestCompletionHomeButton.ButtonPushedFcn = createCallbackFcn(app, @ReturnHome, true);
             app.TestCompletionHomeButton.FontSize = 18;
             app.TestCompletionHomeButton.Position = [360 93 250 55];
@@ -137,20 +134,20 @@ classdef testReport < matlab.apps.AppBase
             app.TestReportPanel.FontSize = 14;
             app.TestReportPanel.Position = [16 16 970 670];
 
-            % Create PhonemeListBoxLabel
-            app.PhonemeListBoxLabel = uilabel(app.TestReportPanel);
-            app.PhonemeListBoxLabel.HorizontalAlignment = 'right';
-            app.PhonemeListBoxLabel.FontSize = 14;
-            app.PhonemeListBoxLabel.Position = [52 598 65 22];
-            app.PhonemeListBoxLabel.Text = string(app.System.test.mode);
+            % Create SoundListBoxLabel
+            app.SoundListBoxLabel = uilabel(app.TestReportPanel);
+            app.SoundListBoxLabel.HorizontalAlignment = 'right';
+            app.SoundListBoxLabel.FontSize = 14;
+            app.SoundListBoxLabel.Position = [52 598 65 22];
+            app.SoundListBoxLabel.Text = string(app.System.test.mode);
 
-            % Create PhonemeListBox
-            app.PhonemeListBox = uilistbox(app.TestReportPanel);
-            app.PhonemeListBox.Items = app.ListConversion(app.System.test.sounds);
-            app.PhonemeListBox.ValueChangedFcn = createCallbackFcn(app, @toggleLabel, true);
-            app.PhonemeListBox.FontSize = 14;
-            app.PhonemeListBox.Position = [16 137 146 462];
-            app.PhonemeListBox.Value = app.PhonemeListBox.Items(1);
+            % Create SoundListBox
+            app.SoundListBox = uilistbox(app.TestReportPanel);
+            app.SoundListBox.Items = app.ListConversion(app.System.test.sounds);
+            app.SoundListBox.ValueChangedFcn = createCallbackFcn(app, @toggleLabel, true);
+            app.SoundListBox.FontSize = 14;
+            app.SoundListBox.Position = [16 137 101 462];
+            app.SoundListBox.Value = app.SoundListBox.Items(1);
 
             % Create bInternalRepresentationPanel
             app.bInternalRepresentationPanel = uipanel(app.TestReportPanel);
@@ -160,10 +157,17 @@ classdef testReport < matlab.apps.AppBase
 
             % Create Internal Representation frequency chart
             app.UIAxes = uiaxes(app.bInternalRepresentationPanel);
-            title(app.UIAxes, 'Frequency Components')
+            title(app.UIAxes, 'Internal Representation')
             xlabel(app.UIAxes, 'Frequency')
             ylabel(app.UIAxes, 'Amplitude')
-            app.UIAxes.Position = [8 72 752 491];
+            app.UIAxes.Position = [8 120 380 300];
+
+            % Create Real Sound frequency chart
+            app.UIAxes2 = uiaxes(app.bInternalRepresentationPanel);
+            title(app.UIAxes2, 'Presented Sound')
+            xlabel(app.UIAxes2, 'Frequency')
+            ylabel(app.UIAxes2, 'Amplitude')
+            app.UIAxes2.Position = [400 120 380 300];
 
             % Create PlaySoundButton
             app.PlaySoundButton = uibutton(app.bInternalRepresentationPanel, 'push');

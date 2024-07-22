@@ -19,6 +19,8 @@ classdef volumeCallibration < matlab.apps.AppBase
         % Value changed function: PlayToneButton
         function toggleTone(app, event)
             PlaySingleTone(app.System.test.callibratedBaseline);
+            pause(1.5);
+            PlaySingleTone(app.System.test.callibratedBaseline);
         end
 
         % Button pushed function: BeginTestButton

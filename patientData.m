@@ -14,7 +14,7 @@ classdef patientData < matlab.apps.AppBase
         SexDropDownLabel               matlab.ui.control.Label
         DateofBirthDatePicker          matlab.ui.control.DatePicker
         DateofBirthDatePickerLabel     matlab.ui.control.Label
-        PatientIDEditField             matlab.ui.control.NumericEditField
+        PatientIDEditField             matlab.ui.control.EditField
         PatientIDEditFieldLabel        matlab.ui.control.Label
         RightEarHearingDeviceDropDown  matlab.ui.control.DropDown
         RightEarHearingDeviceDropDownLabel  matlab.ui.control.Label
@@ -122,9 +122,7 @@ classdef patientData < matlab.apps.AppBase
             app.PatientIDEditFieldLabel.Text = 'Patient ID';
 
             % Create PatientIDEditField
-            app.PatientIDEditField = uieditfield(app.Panel, 'numeric');
-            app.PatientIDEditField.Limits = [0 Inf];
-            app.PatientIDEditField.ValueDisplayFormat = '%.0f';
+            app.PatientIDEditField = uieditfield(app.Panel, 'text');
             app.PatientIDEditField.FontSize = 14;
             app.PatientIDEditField.Position = [113 154 150 35];
 
@@ -158,8 +156,9 @@ classdef patientData < matlab.apps.AppBase
             app.YearssinceleftearhearingdeviceinsertionEditFieldLabel = uilabel(app.PatientDataPanel);
             app.YearssinceleftearhearingdeviceinsertionEditFieldLabel.HorizontalAlignment = 'right';
             app.YearssinceleftearhearingdeviceinsertionEditFieldLabel.WordWrap = 'on';
-            app.YearssinceleftearhearingdeviceinsertionEditFieldLabel.Position = [154 205 132 30];
+            app.YearssinceleftearhearingdeviceinsertionEditFieldLabel.Position = [154 205 132 35];
             app.YearssinceleftearhearingdeviceinsertionEditFieldLabel.Text = 'Years since left ear hearing device insertion';
+            app.YearssinceleftearhearingdeviceinsertionEditFieldLabel.FontSize = 14;
 
             % Create YearssinceleftearhearingdeviceinsertionEditField
             app.YearssinceleftearhearingdeviceinsertionEditField = uieditfield(app.PatientDataPanel, 'numeric');
@@ -167,6 +166,7 @@ classdef patientData < matlab.apps.AppBase
             app.YearssinceleftearhearingdeviceinsertionEditField.ValueDisplayFormat = '%.0f';
             app.YearssinceleftearhearingdeviceinsertionEditField.Enable = 'off';
             app.YearssinceleftearhearingdeviceinsertionEditField.Position = [301 203 175 35];
+            app.YearssinceleftearhearingdeviceinsertionEditField.FontSize = 14;
 
             % Create NextVolumeCallibrationButton
             app.NextVolumeCallibrationButton = uibutton(app.PatientDataPanel, 'push');
@@ -179,8 +179,9 @@ classdef patientData < matlab.apps.AppBase
             app.YearssincerightearhearingdeviceinsertionEditField_2Label = uilabel(app.PatientDataPanel);
             app.YearssincerightearhearingdeviceinsertionEditField_2Label.HorizontalAlignment = 'right';
             app.YearssincerightearhearingdeviceinsertionEditField_2Label.WordWrap = 'on';
-            app.YearssincerightearhearingdeviceinsertionEditField_2Label.Position = [543 205 132 30];
+            app.YearssincerightearhearingdeviceinsertionEditField_2Label.Position = [543 205 132 35];
             app.YearssincerightearhearingdeviceinsertionEditField_2Label.Text = 'Years since right ear hearing device insertion';
+            app.YearssincerightearhearingdeviceinsertionEditField_2Label.FontSize = 14;
 
             % Create YearssincerightearhearingdeviceinsertionEditField
             app.YearssincerightearhearingdeviceinsertionEditField = uieditfield(app.PatientDataPanel, 'numeric');
@@ -188,6 +189,7 @@ classdef patientData < matlab.apps.AppBase
             app.YearssincerightearhearingdeviceinsertionEditField.ValueDisplayFormat = '%.0f';
             app.YearssincerightearhearingdeviceinsertionEditField.Enable = 'off';
             app.YearssincerightearhearingdeviceinsertionEditField.Position = [690 203 175 35];
+            app.YearssincerightearhearingdeviceinsertionEditField.FontSize = 14;
         end
     end
 end

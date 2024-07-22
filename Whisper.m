@@ -47,7 +47,7 @@ classdef Whisper < matlab.apps.AppBase
             app.versionLabel = uilabel(app.UIFigure);
             app.versionLabel.FontSize = 14;
             app.versionLabel.Position = [477 67 47 25];
-            app.versionLabel.Text = 'v 0.2.0';
+            app.versionLabel.Text = 'v 0.3.0';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

@@ -1,5 +1,4 @@
 classdef testOptionSelection < matlab.apps.AppBase
-
     % Properties that correspond to app components
     properties (Access = public)
         UIFigure                   matlab.ui.Figure
@@ -16,7 +15,7 @@ classdef testOptionSelection < matlab.apps.AppBase
         ChoosehowmanywordsyouwouldliketoincludeinthetestLabel  matlab.ui.control.Label
         wordsEditField             matlab.ui.control.NumericEditField
         wordsEditFieldLabel        matlab.ui.control.Label
-        SelectPhonemesPanel        matlab.ui.container.Panel
+        SelectSyllablesPanel          matlab.ui.container.Panel
         allCheckBox                matlab.ui.control.CheckBox
         hooedCheckBox              matlab.ui.control.CheckBox
         hudCheckBox                matlab.ui.control.CheckBox
@@ -48,13 +47,13 @@ classdef testOptionSelection < matlab.apps.AppBase
         baCheckBox                 matlab.ui.control.CheckBox
         SelectTestTypeButtonGroup  matlab.ui.container.ButtonGroup
         WordRecognitionButton      matlab.ui.control.RadioButton
-        PhonemeRecognitionButton   matlab.ui.control.RadioButton
+        SyllableRecognitionButton  matlab.ui.control.RadioButton
         System                     Whisper
     end
 
     
     properties (Access = private)
-        numCheckedPhonemes = 0;    % Gives the number of phoneme checkboxes that are checked
+        numCheckedSyllables = 0;    % Gives the number of syllable checkboxes that are checked
     end
     
 
@@ -64,10 +63,10 @@ classdef testOptionSelection < matlab.apps.AppBase
         % Selection changed function: SelectTestTypeButtonGroup
         function TestTypeSelection(app, event)
             selectedButton = app.SelectTestTypeButtonGroup.SelectedObject;
-            if selectedButton == app.PhonemeRecognitionButton
-                app.SelectPhonemesPanel.Enable = true;
+            if selectedButton == app.SyllableRecognitionButton
+                app.SelectSyllablesPanel.Enable = true;
                 app.SelectWordsPanel.Enable = false;
-                if app.numCheckedPhonemes == 0
+                if app.numCheckedSyllables == 0
                     app.SelectNumberofTrialsPanel.Enable = false;
                     app.NextPatientDataButton.Enable = false;
                 else
@@ -76,7 +75,7 @@ classdef testOptionSelection < matlab.apps.AppBase
                 end
             end
             if selectedButton == app.WordRecognitionButton
-                app.SelectPhonemesPanel.Enable = false;
+                app.SelectSyllablesPanel.Enable = false;
                 app.SelectWordsPanel.Enable = true;
                 app.SelectNumberofTrialsPanel.Enable = true;
                 app.NextPatientDataButton.Enable = true;
@@ -84,9 +83,9 @@ classdef testOptionSelection < matlab.apps.AppBase
         end
 
         % Value changed function: allCheckBox
-        function ToggleAllPhonemes(app, event)
+        function ToggleAllSyllables(app, event)
             value = app.allCheckBox.Value;
-            % set value of all phoneme checkboxes to value
+            % set value of all syllable checkboxes to value
             app.hoedCheckBox.Value = value;
             app.hadCheckBox.Value = value;
             app.headCheckBox.Value = value;
@@ -117,15 +116,15 @@ classdef testOptionSelection < matlab.apps.AppBase
             app.baCheckBox.Value = value;
 
             % if a box is checked, enable number of trials section
-            if app.SelectTestTypeButtonGroup.SelectedObject == app.PhonemeRecognitionButton
+            if app.SelectTestTypeButtonGroup.SelectedObject == app.SyllableRecognitionButton
                 if value
                     app.SelectNumberofTrialsPanel.Enable = true;
                     app.NextPatientDataButton.Enable = true;
-                    app.numCheckedPhonemes = 26;
+                    app.numCheckedSyllables = 26;
                 else
                     app.SelectNumberofTrialsPanel.Enable = false;
                     app.NextPatientDataButton.Enable = false;
-                    app.numCheckedPhonemes = 0;
+                    app.numCheckedSyllables = 0;
                 end
             end
         end
@@ -140,23 +139,23 @@ classdef testOptionSelection < matlab.apps.AppBase
 
         % Value changed function: baCheckBox, daCheckBox, faCheckBox, 
         % ...and 25 other components
-        function ToggleOnePhoneme(app, event)
+        function ToggleOneSyllable(app, event)
             value = event.Source.Value;
             if value
-                app.numCheckedPhonemes = app.numCheckedPhonemes + 1;
+                app.numCheckedSyllables = app.numCheckedSyllables + 1;
             else
-                app.numCheckedPhonemes = app.numCheckedPhonemes - 1;
+                app.numCheckedSyllables = app.numCheckedSyllables - 1;
             end
-            if app.numCheckedPhonemes == 0
+            if app.numCheckedSyllables == 0
                 app.SelectNumberofTrialsPanel.Enable = false;
                 app.NextPatientDataButton.Enable = false;
             else
                 app.SelectNumberofTrialsPanel.Enable = true;
                 app.NextPatientDataButton.Enable = true;
             end
-            if app.numCheckedPhonemes ~= 26
+            if app.numCheckedSyllables ~= 26
                 app.allCheckBox.Value = false;
-            elseif app.numCheckedPhonemes == 26
+            elseif app.numCheckedSyllables == 26
                 app.allCheckBox.Value = true;
             end
         end
@@ -170,16 +169,16 @@ classdef testOptionSelection < matlab.apps.AppBase
         % Button pushed function: NextPatientDataButton
         function EnterPatientData(app, event)
             % record mode and sounds chosen
-            if app.SelectTestTypeButtonGroup.SelectedObject == app.PhonemeRecognitionButton
-                app.System.test.mode = TestType.phoneme;
-                % collect all phonemes that will be used in the Test
-                for ii = 1:length(app.SelectPhonemesPanel.Children)
-                    if app.SelectPhonemesPanel.Children(ii).Value == true && ~strcmp(app.SelectPhonemesPanel.Children(ii).Text,"all")
-                        % Gets the phoneme name from the element on the page
-                        temp = split(app.SelectPhonemesPanel.Children(ii).Text, '/');
+            if app.SelectTestTypeButtonGroup.SelectedObject == app.SyllableRecognitionButton
+                app.System.test.mode = TestType.syllable;
+                % collect all syllables that will be used in the Test
+                for ii = 1:length(app.SelectSyllablesPanel.Children)
+                    if app.SelectSyllablesPanel.Children(ii).Value == true && ~strcmp(app.SelectSyllablesPanel.Children(ii).Text,"all")
+                        % Gets the syllable name from the element on the page
+                        temp = split(app.SelectSyllablesPanel.Children(ii).Text, '/');
                         temp2 = split(temp(2), '/');
                         % construct a Sound object for the sound
-                        newSound = Sound(string(temp2(1)), TestType.phoneme, app.System.test.numTrials);
+                        newSound = Sound(string(temp2(1)), TestType.syllable, app.System.test.numTrials);
                         % store the new Sound in the Test
                         app.System.test.sounds{end+1} = newSound;
                     end
@@ -227,12 +226,12 @@ classdef testOptionSelection < matlab.apps.AppBase
             app.SelectTestTypeButtonGroup.FontSize = 14;
             app.SelectTestTypeButtonGroup.Position = [26 541 194 89];
 
-            % Create PhonemeRecognitionButton
-            app.PhonemeRecognitionButton = uiradiobutton(app.SelectTestTypeButtonGroup);
-            app.PhonemeRecognitionButton.Text = 'Phoneme Recognition';
-            app.PhonemeRecognitionButton.FontSize = 14;
-            app.PhonemeRecognitionButton.Position = [11 39 159 22];
-            app.PhonemeRecognitionButton.Value = true;
+            % Create SyllableRecognitionButton
+            app.SyllableRecognitionButton = uiradiobutton(app.SelectTestTypeButtonGroup);
+            app.SyllableRecognitionButton.Text = 'Syllable Recognition';
+            app.SyllableRecognitionButton.FontSize = 14;
+            app.SyllableRecognitionButton.Position = [11 39 159 22];
+            app.SyllableRecognitionButton.Value = true;
 
             % Create WordRecognitionButton
             app.WordRecognitionButton = uiradiobutton(app.SelectTestTypeButtonGroup);
@@ -240,215 +239,11 @@ classdef testOptionSelection < matlab.apps.AppBase
             app.WordRecognitionButton.FontSize = 14;
             app.WordRecognitionButton.Position = [10 9 133 22];
 
-            % Create SelectPhonemesPanel
-            app.SelectPhonemesPanel = uipanel(app.TestOptionsPanel);
-            app.SelectPhonemesPanel.Title = 'Select Phonemes';
-            app.SelectPhonemesPanel.FontSize = 14;
-            app.SelectPhonemesPanel.Position = [246 237 444 393];
-
-            % Create baCheckBox
-            app.baCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.baCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.baCheckBox.Text = '/ba/';
-            app.baCheckBox.FontSize = 14;
-            app.baCheckBox.Position = [20 330 45 22];
-
-            % Create daCheckBox
-            app.daCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.daCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.daCheckBox.Text = '/da/';
-            app.daCheckBox.FontSize = 14;
-            app.daCheckBox.Position = [130 331 45 22];
-
-            % Create maCheckBox
-            app.maCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.maCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.maCheckBox.Text = '/ma/';
-            app.maCheckBox.FontSize = 14;
-            app.maCheckBox.Position = [130 282 49 22];
-
-            % Create taCheckBox
-            app.taCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.taCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.taCheckBox.Text = '/ta/';
-            app.taCheckBox.FontSize = 14;
-            app.taCheckBox.Position = [130 234 41 22];
-
-            % Create xdaCheckBox
-            app.xdaCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.xdaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.xdaCheckBox.Text = '/xda/';
-            app.xdaCheckBox.FontSize = 14;
-            app.xdaCheckBox.Position = [350 235 52 22];
-
-            % Create vaCheckBox
-            app.vaCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.vaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.vaCheckBox.Text = '/va/';
-            app.vaCheckBox.FontSize = 14;
-            app.vaCheckBox.Position = [240 235 44 22];
-
-            % Create xzaCheckBox
-            app.xzaCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.xzaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.xzaCheckBox.Text = '/xza/';
-            app.xzaCheckBox.FontSize = 14;
-            app.xzaCheckBox.Position = [240 182 51 22];
-
-            % Create hawedCheckBox
-            app.hawedCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.hawedCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.hawedCheckBox.Text = '/hawed/';
-            app.hawedCheckBox.FontSize = 14;
-            app.hawedCheckBox.Position = [240 132 71 22];
-
-            % Create heedCheckBox
-            app.heedCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.heedCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.heedCheckBox.Text = '/heed/';
-            app.heedCheckBox.FontSize = 14;
-            app.heedCheckBox.Position = [350 82 61 22];
-
-            % Create hoodCheckBox
-            app.hoodCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.hoodCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.hoodCheckBox.Text = '/hood/';
-            app.hoodCheckBox.FontSize = 14;
-            app.hoodCheckBox.Position = [130 31 61 22];
-
-            % Create kaCheckBox
-            app.kaCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.kaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.kaCheckBox.Text = '/ka/';
-            app.kaCheckBox.FontSize = 14;
-            app.kaCheckBox.Position = [21 280 44 22];
-
-            % Create saCheckBox
-            app.saCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.saCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.saCheckBox.Text = '/sa/';
-            app.saCheckBox.FontSize = 14;
-            app.saCheckBox.Position = [22 230 44 22];
-
-            % Create xsaCheckBox
-            app.xsaCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.xsaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.xsaCheckBox.Text = '/xsa/';
-            app.xsaCheckBox.FontSize = 14;
-            app.xsaCheckBox.Position = [22 180 51 22];
-
-            % Create xtaCheckBox
-            app.xtaCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.xtaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.xtaCheckBox.Text = '/xta/';
-            app.xtaCheckBox.FontSize = 14;
-            app.xtaCheckBox.Position = [130 181 48 22];
-
-            % Create hodCheckBox
-            app.hodCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.hodCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.hodCheckBox.Text = '/hod/';
-            app.hodCheckBox.FontSize = 14;
-            app.hodCheckBox.Position = [130 131 53 22];
-
-            % Create heardCheckBox
-            app.heardCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.heardCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.heardCheckBox.Text = '/heard/';
-            app.heardCheckBox.FontSize = 14;
-            app.heardCheckBox.Position = [130 81 65 22];
-
-            % Create hidCheckBox
-            app.hidCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.hidCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.hidCheckBox.Text = '/hid/';
-            app.hidCheckBox.FontSize = 14;
-            app.hidCheckBox.Position = [240 82 48 22];
-
-            % Create hayedCheckBox
-            app.hayedCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.hayedCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.hayedCheckBox.Text = '/hayed/';
-            app.hayedCheckBox.FontSize = 14;
-            app.hayedCheckBox.Position = [22 80 68 22];
-
-            % Create gaCheckBox
-            app.gaCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.gaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.gaCheckBox.Text = '/ga/';
-            app.gaCheckBox.FontSize = 14;
-            app.gaCheckBox.Position = [350 331 45 22];
-
-            % Create naCheckBox
-            app.naCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.naCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.naCheckBox.Text = '/na/';
-            app.naCheckBox.FontSize = 14;
-            app.naCheckBox.Position = [240 283 45 22];
-
-            % Create faCheckBox
-            app.faCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.faCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.faCheckBox.Text = '/fa/';
-            app.faCheckBox.FontSize = 14;
-            app.faCheckBox.Position = [240 331 41 22];
-
-            % Create paCheckBox
-            app.paCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.paCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.paCheckBox.Text = '/pa/';
-            app.paCheckBox.FontSize = 14;
-            app.paCheckBox.Position = [350 284 45 22];
-
-            % Create zaCheckBox
-            app.zaCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.zaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.zaCheckBox.Text = '/za/';
-            app.zaCheckBox.FontSize = 14;
-            app.zaCheckBox.Position = [350 183 44 22];
-
-            % Create headCheckBox
-            app.headCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.headCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.headCheckBox.Text = '/head/';
-            app.headCheckBox.FontSize = 14;
-            app.headCheckBox.Position = [350 133 61 22];
-
-            % Create hadCheckBox
-            app.hadCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.hadCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.hadCheckBox.Text = '/had/';
-            app.hadCheckBox.FontSize = 14;
-            app.hadCheckBox.Position = [22 130 53 22];
-
-            % Create hoedCheckBox
-            app.hoedCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.hoedCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.hoedCheckBox.Text = '/hoed/';
-            app.hoedCheckBox.FontSize = 14;
-            app.hoedCheckBox.Position = [22 30 61 22];
-
-            % Create hudCheckBox
-            app.hudCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.hudCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.hudCheckBox.Text = '/hud/';
-            app.hudCheckBox.FontSize = 14;
-            app.hudCheckBox.Position = [240 31 53 22];
-
-            % Create hooedCheckBox
-            app.hooedCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.hooedCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOnePhoneme, true);
-            app.hooedCheckBox.Text = '/hooed/';
-            app.hooedCheckBox.FontSize = 14;
-            app.hooedCheckBox.Position = [350 31 68 22];
-
-            % Create allCheckBox
-            app.allCheckBox = uicheckbox(app.SelectPhonemesPanel);
-            app.allCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleAllPhonemes, true);
-            app.allCheckBox.Text = 'all';
-            app.allCheckBox.FontSize = 14;
-            app.allCheckBox.FontWeight = 'bold';
-            app.allCheckBox.Position = [399 371 37 22];
+            % Create SelectSyllablesPanel
+            app.SelectSyllablesPanel = uipanel(app.TestOptionsPanel);
+            app.SelectSyllablesPanel.Title = 'Select Syllables';
+            app.SelectSyllablesPanel.FontSize = 14;
+            app.SelectSyllablesPanel.Position = [246 237 444 393];
 
             % Create SelectWordsPanel
             app.SelectWordsPanel = uipanel(app.TestOptionsPanel);
@@ -456,6 +251,210 @@ classdef testOptionSelection < matlab.apps.AppBase
             app.SelectWordsPanel.Title = 'Select Words';
             app.SelectWordsPanel.FontSize = 14;
             app.SelectWordsPanel.Position = [246 86 444 124];
+
+            % Create baCheckBox
+            app.baCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.baCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.baCheckBox.Text = '/ba/';
+            app.baCheckBox.FontSize = 14;
+            app.baCheckBox.Position = [20 330 45 22];
+
+            % Create daCheckBox
+            app.daCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.daCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.daCheckBox.Text = '/da/';
+            app.daCheckBox.FontSize = 14;
+            app.daCheckBox.Position = [130 331 45 22];
+
+            % Create maCheckBox
+            app.maCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.maCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.maCheckBox.Text = '/ma/';
+            app.maCheckBox.FontSize = 14;
+            app.maCheckBox.Position = [130 282 49 22];
+
+            % Create taCheckBox
+            app.taCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.taCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.taCheckBox.Text = '/ta/';
+            app.taCheckBox.FontSize = 14;
+            app.taCheckBox.Position = [130 234 41 22];
+
+            % Create xdaCheckBox
+            app.xdaCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.xdaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.xdaCheckBox.Text = '/xda/';
+            app.xdaCheckBox.FontSize = 14;
+            app.xdaCheckBox.Position = [350 235 52 22];
+
+            % Create vaCheckBox
+            app.vaCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.vaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.vaCheckBox.Text = '/va/';
+            app.vaCheckBox.FontSize = 14;
+            app.vaCheckBox.Position = [240 235 44 22];
+
+            % Create xzaCheckBox
+            app.xzaCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.xzaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.xzaCheckBox.Text = '/xza/';
+            app.xzaCheckBox.FontSize = 14;
+            app.xzaCheckBox.Position = [240 182 51 22];
+
+            % Create hawedCheckBox
+            app.hawedCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.hawedCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.hawedCheckBox.Text = '/hawed/';
+            app.hawedCheckBox.FontSize = 14;
+            app.hawedCheckBox.Position = [240 132 71 22];
+
+            % Create heedCheckBox
+            app.heedCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.heedCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.heedCheckBox.Text = '/heed/';
+            app.heedCheckBox.FontSize = 14;
+            app.heedCheckBox.Position = [350 82 61 22];
+
+            % Create hoodCheckBox
+            app.hoodCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.hoodCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.hoodCheckBox.Text = '/hood/';
+            app.hoodCheckBox.FontSize = 14;
+            app.hoodCheckBox.Position = [130 31 61 22];
+
+            % Create kaCheckBox
+            app.kaCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.kaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.kaCheckBox.Text = '/ka/';
+            app.kaCheckBox.FontSize = 14;
+            app.kaCheckBox.Position = [21 280 44 22];
+
+            % Create saCheckBox
+            app.saCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.saCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.saCheckBox.Text = '/sa/';
+            app.saCheckBox.FontSize = 14;
+            app.saCheckBox.Position = [22 230 44 22];
+
+            % Create xsaCheckBox
+            app.xsaCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.xsaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.xsaCheckBox.Text = '/xsa/';
+            app.xsaCheckBox.FontSize = 14;
+            app.xsaCheckBox.Position = [22 180 51 22];
+
+            % Create xtaCheckBox
+            app.xtaCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.xtaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.xtaCheckBox.Text = '/xta/';
+            app.xtaCheckBox.FontSize = 14;
+            app.xtaCheckBox.Position = [130 181 48 22];
+
+            % Create hodCheckBox
+            app.hodCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.hodCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.hodCheckBox.Text = '/hod/';
+            app.hodCheckBox.FontSize = 14;
+            app.hodCheckBox.Position = [130 131 53 22];
+
+            % Create heardCheckBox
+            app.heardCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.heardCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.heardCheckBox.Text = '/heard/';
+            app.heardCheckBox.FontSize = 14;
+            app.heardCheckBox.Position = [130 81 65 22];
+
+            % Create hidCheckBox
+            app.hidCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.hidCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.hidCheckBox.Text = '/hid/';
+            app.hidCheckBox.FontSize = 14;
+            app.hidCheckBox.Position = [240 82 48 22];
+
+            % Create hayedCheckBox
+            app.hayedCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.hayedCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.hayedCheckBox.Text = '/hayed/';
+            app.hayedCheckBox.FontSize = 14;
+            app.hayedCheckBox.Position = [22 80 68 22];
+
+            % Create gaCheckBox
+            app.gaCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.gaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.gaCheckBox.Text = '/ga/';
+            app.gaCheckBox.FontSize = 14;
+            app.gaCheckBox.Position = [350 331 45 22];
+
+            % Create naCheckBox
+            app.naCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.naCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.naCheckBox.Text = '/na/';
+            app.naCheckBox.FontSize = 14;
+            app.naCheckBox.Position = [240 283 45 22];
+
+            % Create faCheckBox
+            app.faCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.faCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.faCheckBox.Text = '/fa/';
+            app.faCheckBox.FontSize = 14;
+            app.faCheckBox.Position = [240 331 41 22];
+
+            % Create paCheckBox
+            app.paCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.paCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.paCheckBox.Text = '/pa/';
+            app.paCheckBox.FontSize = 14;
+            app.paCheckBox.Position = [350 284 45 22];
+
+            % Create zaCheckBox
+            app.zaCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.zaCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.zaCheckBox.Text = '/za/';
+            app.zaCheckBox.FontSize = 14;
+            app.zaCheckBox.Position = [350 183 44 22];
+
+            % Create headCheckBox
+            app.headCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.headCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.headCheckBox.Text = '/head/';
+            app.headCheckBox.FontSize = 14;
+            app.headCheckBox.Position = [350 133 61 22];
+
+            % Create hadCheckBox
+            app.hadCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.hadCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.hadCheckBox.Text = '/had/';
+            app.hadCheckBox.FontSize = 14;
+            app.hadCheckBox.Position = [22 130 53 22];
+
+            % Create hoedCheckBox
+            app.hoedCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.hoedCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.hoedCheckBox.Text = '/hoed/';
+            app.hoedCheckBox.FontSize = 14;
+            app.hoedCheckBox.Position = [22 30 61 22];
+
+            % Create hudCheckBox
+            app.hudCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.hudCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.hudCheckBox.Text = '/hud/';
+            app.hudCheckBox.FontSize = 14;
+            app.hudCheckBox.Position = [240 31 53 22];
+
+            % Create hooedCheckBox
+            app.hooedCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.hooedCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleOneSyllable, true);
+            app.hooedCheckBox.Text = '/hooed/';
+            app.hooedCheckBox.FontSize = 14;
+            app.hooedCheckBox.Position = [350 31 68 22];
+
+            % Create allCheckBox
+            app.allCheckBox = uicheckbox(app.SelectSyllablesPanel);
+            app.allCheckBox.ValueChangedFcn = createCallbackFcn(app, @ToggleAllSyllables, true);
+            app.allCheckBox.Text = 'all';
+            app.allCheckBox.FontSize = 14;
+            app.allCheckBox.FontWeight = 'bold';
+            app.allCheckBox.Position = [399 371 37 22];
 
             % Create wordsEditFieldLabel
             app.wordsEditFieldLabel = uilabel(app.SelectWordsPanel);

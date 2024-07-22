@@ -2,8 +2,8 @@
 
 function PlaySingleTone(callibratedBaseline)
     samplingRate = 22050;
-    duration = 0.7;
-    tone_freq = 8000;
+    duration = 1;
+    tone_freq = 7000;
     % generate single tone
     t = 0:1/samplingRate:duration;
     soundDataSamples = sin(2*pi*tone_freq.*t)';
