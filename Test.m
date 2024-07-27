@@ -32,6 +32,7 @@ classdef Test < matlab.apps.AppBase
         duration                    
         patient                     Patient
         callibratedBaseline         double
+        SavePath                    string
     end
 
     % Callbacks that handle component events
@@ -66,22 +67,29 @@ classdef Test < matlab.apps.AppBase
                 app.JButton.Value = false;
                 
                 % Play sounds
-                pause(1);
+                pause(0.2);
                 app.PlaySounds();
             end
 
         end
 
-        % Value changed function: FButton
-        function ToggleF(app, event)
-            value = app.FButton.Value;
-            app.NextTrial();
+        % Keyboard shortcuts
+        function processKeyPress(app, event, KeyData)
+            if KeyData.Key == 'j'
+                app.JButton.Value = true;
+                app.NextTrial();
+            elseif KeyData.Key == 'f'
+                app.FButton.Value = true;
+                app.NextTrial();
+            elseif KeyData.Key == 'space'
+                app.PlaySounds();
+            end
         end
 
-        % Value changed function: JButton
-        function ToggleJ(app, event)
-            value = app.JButton.Value;
-            app.NextTrial();
+        function processSoundCardKeyPress(app, event, KeyData)
+            if KeyData.Key == 'enter'
+                app.nextSound();
+            end
         end
 
         function TestReport(app)
@@ -95,6 +103,8 @@ classdef Test < matlab.apps.AppBase
             app.duration = app.endTimestamp - app.startTimestamp;
             % save the test data in the Test object
             app.System.test = app;
+            % generate the dataset
+            GenerateDataset(app);
 
             % Build test completion UI
             testReportView = testReport();
@@ -144,51 +154,80 @@ classdef Test < matlab.apps.AppBase
         function PlaySounds(app, event)
             % Play human voiced sound
             PlaySound(app.currentSoundObj.humanVoicedSoundTimeDomain, app.currentSoundObj.samplingRate, 6, app.callibratedBaseline);
-            % Pause 2 seconds
+            % Pause 1.5 seconds
             pause(1.5);
 
             % Play computer generated sound
             
-            % Get representation in frequency domain
+            % Get representation in frequency domain and plot stimuli in
+            % frequency domain
             stimFrequencyDomain = app.currentSoundObj.stimulusMatrix(app.currentTrial, :);
             stimFrequencyDomain = stimFrequencyDomain(:);
             figure(1);
-            binnum = getFreqBins(app.currentSoundObj.samplingRate, app.currentSoundObj.numSamples, app.currentSoundObj.numBins, 0, app.currentSoundObj.samplingRate);
-            stimFreqDomain = -100 * ones(1, app.currentSoundObj.numSamples);
-             % Fill bins
-             for ii = 1:app.currentSoundObj.numBins
-                 % Fills each frequency in bin ii with the amplitude of the
-                 % lowest frequency in that bin
-                 stimFreqDomain(binnum==ii) = stimFrequencyDomain(ii);
-             end
-            stem(real(stimFreqDomain));
+            if length(stimFrequencyDomain) >= 10000
+                topFreq = 10000;
+            else
+                topFreq = length(stimFrequencyDomain);
+            end
+            plot(abs(stimFrequencyDomain(1:topFreq)));
+            title('Computer-Generated Stimulus');
+            xlabel('Frequency (Hz)');
+            ylabel('Amplitude');
 
-            % Convert stimulus into the time domain
-            %phase = 2*pi*(rand(app.currentSoundObj.numSamples/2,1)-0.5); % assign random phase to freq spec
-            %s = (10.^(stimFrequencyDomain./10)).*exp(1i*phase); % convert dB to amplitudes
-            %ss = [ones(1,1); s; conj(flipud(s))];
-            %stim = ifft(ss); % transform from freq to time domain
-            %stim = 0.1*(stim ./ rms(stim)); % Set dB of stimuli
-            stim = ifft(stimFreqDomain);
-            figure(2);
-            plot(real(stim));
 
+            % Convert stimulus into the time domain and plot
+            stim = ifft(stimFrequencyDomain);
             % mirror sound and stretch
-            stim1 = stim(1:length(stim)/2);
-            stim2 = stim(length(stim)/2+1:end);
-            stim2 = flipud(stim2);
-            stim3 = stim1 + stim2;
-            stim4 = imresize(stim3, [1 length(stim)], 'nearest');
+            folds = floor(app.currentSoundObj.numSamples / app.currentSoundObj.numBins);
+            summation = zeros(floor(length(stim)/folds));
+            for fold = 1:folds
+                currentFold = stim(floor((length(stim)*(fold-1)/folds)) + 1:floor(length(stim)*fold/folds));
+                summation = summation + currentFold;
+            end
+            stim4 = imresize(summation', [1 length(stim)], 'nearest');
+            % set values before and after the real signal to 0
+            stim4(1:app.currentSoundObj.signalStart) = 0.0001;
+            stim4(app.currentSoundObj.signalStop:end) = 0.0001;
+            % Convert to dB
+            stim5 = mag2db(abs(stim4));
+            % Sets the maximum amplitude to 0dB
+            stim5 = stim5 - max(stim5);
+            figure(2);
+            %plot(real(stim4));
+            plot(real(stim4));
+            title('Computer-Generated Stimulus');
+            xlabel('Sample Number');
+            ylabel('Amplitude (dB Fullscale)');
 
             % Play sound
-            PlaySound(real(stim4), app.currentSoundObj.samplingRate, 6, app.callibratedBaseline);
+            PlaySound(real(stim4), app.currentSoundObj.samplingRate, 10, app.callibratedBaseline);
 
-            % Plot human voiced sound
-            figure(3);
-            spect = app.currentSoundObj.getHumanVoicedSoundBinnedRepresentation();
-            stem(real(spect));
+
+            % Plot human voiced sound in time domain
             figure(4);
-            plot(1:app.currentSoundObj.numSamples, app.currentSoundObj.humanVoicedSoundTimeDomain(1:app.currentSoundObj.numSamples))
+            % Convert to dB
+            humanVoicedSoundTimeDomainDB = mag2db(abs(app.currentSoundObj.humanVoicedSoundTimeDomain));
+            % Sets the maximum amplitude to 0dB
+            humanVoicedSoundTimeDomainDB = humanVoicedSoundTimeDomainDB - max(humanVoicedSoundTimeDomainDB);
+            
+            plot(app.currentSoundObj.humanVoicedSoundTimeDomain);
+            %plot(humanVoicedSoundTimeDomainDB)
+            title('Human-Voiced Sound');
+            xlabel('Sample Number');
+            ylabel('Amplitude (dB Fullscale)');
+            
+            % Plot human voiced sound in frequency domain
+            figure(3);
+            spect = abs(app.currentSoundObj.getHumanVoicedSoundBinnedRepresentation());
+            %spect = abs(app.currentSoundObj.humanVoicedSoundFrequencyDomain);
+            plot(spect(1:topFreq));
+            title('Human-Voiced Sound');
+            xlabel('Frequency (Hz)');
+            ylabel('Amplitude');
+
+            %figure(5);
+            %plot(abs(app.currentSoundObj.humanVoicedSoundFrequencyDomain(1:topFreq)));
+         
         end
     end
 
@@ -212,6 +251,8 @@ classdef Test < matlab.apps.AppBase
         % Create UIFigure and components
         function createTestComponents(app, UIFigure)
             app.UIFigure = UIFigure;
+            set(app.UIFigure, 'KeyPressFcn', @app.processKeyPress);
+
             % Create RecognitionPanel
             app.RecognitionPanel = uipanel(app.UIFigure);
             app.RecognitionPanel.Title = 'Syllable Recognition';
@@ -220,14 +261,14 @@ classdef Test < matlab.apps.AppBase
 
             % Create FButton
             app.FButton = uibutton(app.RecognitionPanel, 'state');
-            app.FButton.ValueChangedFcn = createCallbackFcn(app, @ToggleF, true);
+            app.FButton.ValueChangedFcn = createCallbackFcn(app, @NextTrial, true);
             app.FButton.Text = 'F';
             app.FButton.FontSize = 36;
             app.FButton.Position = [300 316 90 97];
 
             % Create JButton
             app.JButton = uibutton(app.RecognitionPanel, 'state');
-            app.JButton.ValueChangedFcn = createCallbackFcn(app, @ToggleJ, true);
+            app.JButton.ValueChangedFcn = createCallbackFcn(app, @NextTrial, true);
             app.JButton.Text = 'J';
             app.JButton.FontSize = 48;
             app.JButton.Position = [593 317 90 97];
@@ -272,7 +313,7 @@ classdef Test < matlab.apps.AppBase
             % Create TestTrialCountLabel
             app.TestTrialCountLabel = uilabel(app.RecognitionPanel);
             app.TestTrialCountLabel.FontSize = 14;
-            app.TestTrialCountLabel.Position = [878 648 86 22];
+            app.TestTrialCountLabel.Position = [870 648 94 22];
             app.TestTrialCountLabel.Text = 'Trial ' + string(app.currentTrial) + ' of ' + string(app.numTrials);
         end
 
@@ -283,6 +324,7 @@ classdef Test < matlab.apps.AppBase
             app.currentSoundObj = app.sounds{app.currentSound};
             app.currentTrial = 1;
             app.currentSoundObj.stimulusMatrix = GenerateStimulusMatrix(app.currentSoundObj);
+            set(app.UIFigure, 'KeyPressFcn', @app.processSoundCardKeyPress);
 
             % Create SoundCardSoundLabel
             app.SoundCardSoundLabel = uilabel(app.UIFigure);

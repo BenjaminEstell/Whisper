@@ -5,5 +5,4 @@
 
 function internalRepresentation = GenerateInternalRepresentation(sound)
     internalRepresentation = (1/sound.numBins)*sound.stimulusMatrix'*sound.responseVector;
-
 end

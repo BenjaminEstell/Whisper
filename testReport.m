@@ -17,7 +17,6 @@ classdef testReport < matlab.apps.AppBase
         SoundListBoxLabel             matlab.ui.control.Label
         System                        Whisper
         currentSound                  Sound
-        currentSoundInternalRepresentation
     end
 
     % Callbacks that handle component events
@@ -59,20 +58,32 @@ classdef testReport < matlab.apps.AppBase
             app.bInternalRepresentationPanel.Title = value + " Internal Representation";
 
             % Update graphs
-            stem(app.UIAxes, real(app.currentSound.internalRepresentation));
-    
+            if length(app.currentSound.internalRepresentation) >= 10000
+                topFreq = 10000;
+            else
+                topFreq = length(app.currentSound.internalRepresentation);
+            end
+            x = 1:topFreq;
             spect = app.currentSound.getHumanVoicedSoundBinnedRepresentation();
-            stem(app.UIAxes2, real(spect));
+            plot(app.UIAxes, x, abs(app.currentSound.internalRepresentation(1:topFreq)), x, abs(spect(1:topFreq)));
+            legend('Internal Representation', 'Human-Voiced Sound');
+            plot(app.UIAxes2, abs(spect(1:topFreq)));
         end
 
         function PlayInternalRepresentation(app, event)
-            spectFreqDomain = app.currentSoundInternalRepresentation;
-            phase = 2*pi*(rand(app.currentSound.numSamples/2,size(spectFreqDomain,2))-0.5); % assign random phase to freq spec
-            s = (10.^(spectFreqDomain./10)).*exp(1i*phase); % convert dB to amplitudes
-            ss = [ones(1,size(spectFreqDomain,2)); s; conj(flipud(s))];
-            stim = ifft(ss); % transform from freq to time domain
-            stim = (stim ./ rms(stim)); % Set dB of stimuli
-            PlaySound(stim, app.currentSound.samplingRate, 6, app.System.test.callibratedBaseline);
+            spectFreqDomain = app.currentSound.internalRepresentation;
+            stim = ifft(spectFreqDomain);
+            % mirror sound and stretch
+            folds = floor(app.currentSound.numSamples / app.currentSound.numBins);
+            summation = zeros(floor(length(stim)/folds));
+            for fold = 1:folds
+                currentFold = stim(floor((length(stim)*(fold-1)/folds)) + 1:floor(length(stim)*fold/folds));
+                summation = summation + currentFold;
+            end
+            stim4 = imresize(summation', [1 length(stim)], 'nearest');
+            stim5 = flipud(stim4');
+            % Play sound
+            PlaySound(real(stim5), app.currentSound.samplingRate, 6, app.System.test.callibratedBaseline);
         end
 
         function listOut = ListConversion(app, listIn)
@@ -153,7 +164,7 @@ classdef testReport < matlab.apps.AppBase
             app.bInternalRepresentationPanel = uipanel(app.TestReportPanel);
             app.bInternalRepresentationPanel.Title = string(app.currentSound.name) + ' Internal Representation';
             app.bInternalRepresentationPanel.FontSize = 14;
-            app.bInternalRepresentationPanel.Position = [201 18 747 602];
+            app.bInternalRepresentationPanel.Position = [190 18 770 602];
 
             % Create Internal Representation frequency chart
             app.UIAxes = uiaxes(app.bInternalRepresentationPanel);

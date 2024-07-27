@@ -205,6 +205,19 @@ classdef testOptionSelection < matlab.apps.AppBase
             patientDataView = patientData();
             patientDataView.createComponents(app.UIFigure, app.System);
         end
+
+        % Opens the dialog box for saving the dataset into a folder
+        function BrowseSaveLocation(app, event)
+            f = figure('Renderer', 'painters', 'Position', [-100 -100 0 0]); %create a dummy figure so that uigetfile doesn't minimize our GUI
+            path = uigetdir();
+            delete(f);
+            app.System.test.SavePath = path;
+
+            % Update UI
+            folders = split(path, '\');
+            folder = folders(end);
+            app.BrowseButton.Text = '\' + string(folder);
+        end
     end
 
     % View creation
@@ -533,6 +546,7 @@ classdef testOptionSelection < matlab.apps.AppBase
 
             % Create BrowseButton
             app.BrowseButton = uibutton(app.SaveOptionsPanel, 'push');
+            app.BrowseButton.ButtonPushedFcn = createCallbackFcn(app, @BrowseSaveLocation, true);
             app.BrowseButton.FontSize = 14;
             app.BrowseButton.Position = [37 17 119 25];
             app.BrowseButton.Text = 'Browse';
