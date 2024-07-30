@@ -1,32 +1,34 @@
 % Generate Stimulus Matrix
 
-% Generates the compressive sensing stimulus matrix (numTrials x numBins)
+% Generates the compressive sensing stimulus matrix (numTrials x numFreqs)
 % that is used to generate the computer-generated stimuli presented to
 % patients
 
 function stimulusMatrix = GenerateStimulusMatrix(sound)
-    spect = -100 * ones(sound.numTrials, sound.numSamples);
-    binnum = getFreqBins(sound.samplingRate, sound.numSamples, sound.numBins, 0, sound.numSamples);
-    % Keep the first 4 formants, but reset everything else
-    formantBins = sound.formantFrequencies;
+    stimulusMatrix = -100 * ones(sound.numTrials, sound.numSamples);
+    binnum = getFreqBins(sound.samplingRate, sound.numSamples, sound.numFreqs, 0, sound.numSamples);
+    formantFreqs = sound.formantFrequencies;
     for jj = 1:sound.numTrials
-        spect(jj, :) = sound.humanVoicedSoundFrequencyDomain;
+        stimulusMatrix(jj, :) = sound.humanVoicedSoundFrequencyDomain;
 
-        for ii = 1:length(formantBins)
-            % swap the amplitude of the formant bin with a random bin
-            % Something ain't right here
-            randBin = floor(rand() * sound.numBins);
-            temp = spect(jj, binnum==randBin);
-            spect(jj, binnum==randBin) = spect(jj, formantBins(ii));
-            spect(jj, binnum==formantBins(ii)) = temp;
+        for ii = 1:length(formantFreqs)
+            randBin = floor(rand() * sound.numFreqs-8)+4;
+            % swap the amplitude of the formant frequency, plus the 4 frequencies on either side with a random
+            % collection of frequency 9 frequencies\
+            randBinFreqs = randBin-4:randBin+4;
+            peakFreqs= formantFreqs(ii)-4:formantFreqs(ii)+4;
+            for kk = 1:9
+                temp = stimulusMatrix(jj, binnum==randBinFreqs(kk));
+                stimulusMatrix(jj, binnum==randBinFreqs(kk)) = stimulusMatrix(jj, binnum==peakFreqs(kk));
+                stimulusMatrix(jj, binnum==peakFreqs(kk)) = temp;
+            end
         end
     end
-    stimulusMatrix = spect;
 
     % Compressive sensing
-    % for ii = 1:numBins
+    % for ii = 1:numFreqs
     %     % Create initial basis vectors, ek
-    %     ek = zeros(numBins, 1);
+    %     ek = zeros(numFreqs, 1);
     %     % Put 1's on the diagonal to create basis vectors
     %     ek(ii) = 1;
     %     % Take the inverse cosine transform of ek, resulting in a sparse

@@ -52,11 +52,13 @@ classdef Test < matlab.apps.AppBase
             if app.currentTrial == app.numTrials
                 % generate the internal representation for this sound
                 app.currentSoundObj.internalRepresentation = GenerateInternalRepresentation(app.currentSoundObj);
+                % save the Sound object back into the Sounds array
                 app.sounds{app.currentSound} = app.currentSoundObj;
                 % if we have finished the last sound, end the test
                 if app.currentSound == app.numSounds
                     app.TestReport();
                 else
+                    % Otherwise, move on to the next Sound
                     app.NextSoundCard();
                 end
             else
@@ -146,7 +148,7 @@ classdef Test < matlab.apps.AppBase
             app.TestTrialCountLabel.Text = 'Trial ' + string(app.currentTrial) + ' of ' + string(app.numTrials);
 
             % Play sounds
-            pause(1);
+            pause(0.4);
             app.PlaySounds();
         end
 
@@ -158,76 +160,66 @@ classdef Test < matlab.apps.AppBase
             pause(1.5);
 
             % Play computer generated sound
-            
             % Get representation in frequency domain and plot stimuli in
             % frequency domain
-            stimFrequencyDomain = app.currentSoundObj.stimulusMatrix(app.currentTrial, :);
-            stimFrequencyDomain = stimFrequencyDomain(:);
+            stimFrequencyDomain = imresize(app.currentSoundObj.stimulusMatrix(app.currentTrial, :)', [app.currentSoundObj.numFreqs 1], "nearest");
             figure(1);
-            if length(stimFrequencyDomain) >= 10000
-                topFreq = 10000;
-            else
-                topFreq = length(stimFrequencyDomain);
-            end
-            plot(abs(stimFrequencyDomain(1:topFreq)));
+            plot(abs(stimFrequencyDomain));
             title('Computer-Generated Stimulus');
             xlabel('Frequency (Hz)');
             ylabel('Amplitude');
 
+            % figure(5);
+            % dbgg = 20*log10(stimFrequencyDomain/10);
+            % %plot(mag2db(abs(stimFrequencyDomain)));
+            % plot(real(dbgg));
+            % title('Computer-Generated Stimulus');
+            % xlabel('Frequency (Hz)');
+            % ylabel('Amplitude (dB)');
+
 
             % Convert stimulus into the time domain and plot
-            stim = ifft(stimFrequencyDomain);
+            stim = ifft(app.currentSoundObj.stimulusMatrix(app.currentTrial, :));
             % mirror sound and stretch
-            folds = floor(app.currentSoundObj.numSamples / app.currentSoundObj.numBins);
-            summation = zeros(floor(length(stim)/folds));
+            folds = floor(app.currentSoundObj.numSamples / app.currentSoundObj.numFreqs);
+            summation = zeros(1, floor(length(stim)/folds));
             for fold = 1:folds
-                currentFold = stim(floor((length(stim)*(fold-1)/folds)) + 1:floor(length(stim)*fold/folds));
+                currentFold = stim(floor(length(stim)*(fold-1)/folds) + 1:floor(length(stim)*fold/folds));
                 summation = summation + currentFold;
             end
-            stim4 = imresize(summation', [1 length(stim)], 'nearest');
-            % set values before and after the real signal to 0
+            stim4 = imresize(summation, [1 length(stim)], 'nearest');
+            % set values before and after the real signal to 0.001
             stim4(1:app.currentSoundObj.signalStart) = 0.0001;
             stim4(app.currentSoundObj.signalStop:end) = 0.0001;
-            % Convert to dB
-            stim5 = mag2db(abs(stim4));
-            % Sets the maximum amplitude to 0dB
-            stim5 = stim5 - max(stim5);
             figure(2);
-            %plot(real(stim4));
             plot(real(stim4));
             title('Computer-Generated Stimulus');
             xlabel('Sample Number');
-            ylabel('Amplitude (dB Fullscale)');
+            ylabel('Amplitude');
 
             % Play sound
             PlaySound(real(stim4), app.currentSoundObj.samplingRate, 10, app.callibratedBaseline);
 
-
             % Plot human voiced sound in time domain
-            figure(4);
-            % Convert to dB
-            humanVoicedSoundTimeDomainDB = mag2db(abs(app.currentSoundObj.humanVoicedSoundTimeDomain));
-            % Sets the maximum amplitude to 0dB
-            humanVoicedSoundTimeDomainDB = humanVoicedSoundTimeDomainDB - max(humanVoicedSoundTimeDomainDB);
-            
-            plot(app.currentSoundObj.humanVoicedSoundTimeDomain);
-            %plot(humanVoicedSoundTimeDomainDB)
-            title('Human-Voiced Sound');
-            xlabel('Sample Number');
-            ylabel('Amplitude (dB Fullscale)');
+            % figure(4);
+            % % Convert to dB
+            % humanVoicedSoundTimeDomainDB = mag2db(abs(app.currentSoundObj.humanVoicedSoundTimeDomain));
+            % % Sets the maximum amplitude to 0dB
+            % humanVoicedSoundTimeDomainDB = humanVoicedSoundTimeDomainDB - max(humanVoicedSoundTimeDomainDB);
+            % 
+            % plot(app.currentSoundObj.humanVoicedSoundTimeDomain);
+            % title('Human-Voiced Sound');
+            % xlabel('Sample Number');
+            % ylabel('Amplitude (dB)');
             
             % Plot human voiced sound in frequency domain
             figure(3);
-            spect = abs(app.currentSoundObj.getHumanVoicedSoundBinnedRepresentation());
-            %spect = abs(app.currentSoundObj.humanVoicedSoundFrequencyDomain);
-            plot(spect(1:topFreq));
+            spect = imresize(abs(app.currentSoundObj.humanVoicedSoundFrequencyDomain), [app.currentSoundObj.numFreqs 1], "nearest");
+            plot(spect(1:app.currentSoundObj.numFreqs));
             title('Human-Voiced Sound');
             xlabel('Frequency (Hz)');
             ylabel('Amplitude');
 
-            %figure(5);
-            %plot(abs(app.currentSoundObj.humanVoicedSoundFrequencyDomain(1:topFreq)));
-         
         end
     end
 
@@ -313,7 +305,7 @@ classdef Test < matlab.apps.AppBase
             % Create TestTrialCountLabel
             app.TestTrialCountLabel = uilabel(app.RecognitionPanel);
             app.TestTrialCountLabel.FontSize = 14;
-            app.TestTrialCountLabel.Position = [870 648 94 22];
+            app.TestTrialCountLabel.Position = [865 648 94 22];
             app.TestTrialCountLabel.Text = 'Trial ' + string(app.currentTrial) + ' of ' + string(app.numTrials);
         end
 

@@ -4,7 +4,6 @@ classdef testReport < matlab.apps.AppBase
     properties (Access = public)
         UIFigure                      matlab.ui.Figure
         UIAxes                        matlab.ui.control.UIAxes
-        UIAxes2                       matlab.ui.control.UIAxes
         TestCompletePanel             matlab.ui.container.Panel
         TestCompletionHomeButton      matlab.ui.control.Button
         ViewTestReportButton          matlab.ui.control.Button
@@ -58,30 +57,31 @@ classdef testReport < matlab.apps.AppBase
             app.bInternalRepresentationPanel.Title = value + " Internal Representation";
 
             % Update graphs
-            if length(app.currentSound.internalRepresentation) >= 10000
-                topFreq = 10000;
-            else
-                topFreq = length(app.currentSound.internalRepresentation);
-            end
-            x = 1:topFreq;
-            spect = app.currentSound.getHumanVoicedSoundBinnedRepresentation();
-            plot(app.UIAxes, x, abs(app.currentSound.internalRepresentation(1:topFreq)), x, abs(spect(1:topFreq)));
-            legend('Internal Representation', 'Human-Voiced Sound');
-            plot(app.UIAxes2, abs(spect(1:topFreq)));
+            x = 1:app.currentSound.numFreqs;
+            OGSound = imresize(app.currentSound.humanVoicedSoundFrequencyDomain, [app.currentSound.numFreqs 1], "nearest");
+            internalRepresentation = imresize(app.currentSound.internalRepresentation, [app.currentSound.numFreqs 1], "nearest");
+            % Scale internal representation to match the OG sound
+            match = rms(OGSound(1:app.currentSound.numFreqs)) / rms(internalRepresentation);
+            plot(app.UIAxes, x, (abs(internalRepresentation).*match) + 0.01, 'blue', LineWidth=2);
+            hold(app.UIAxes, "on");
+            plot(app.UIAxes, x, abs(OGSound(1:app.currentSound.numFreqs)), 'red', LineWidth=2);
+            legend(app.UIAxes, 'Internal Representation', 'Human-Voiced Sound');
+            hold(app.UIAxes, "off");
         end
 
         function PlayInternalRepresentation(app, event)
-            spectFreqDomain = app.currentSound.internalRepresentation;
-            stim = ifft(spectFreqDomain);
+            internalRepresentationTimeDomain = ifft(app.currentSound.internalRepresentation);
             % mirror sound and stretch
-            folds = floor(app.currentSound.numSamples / app.currentSound.numBins);
-            summation = zeros(floor(length(stim)/folds));
+            folds = floor(app.currentSound.numSamples / app.currentSound.numFreqs);
+            summation = zeros(floor(length(internalRepresentationTimeDomain)/folds));
             for fold = 1:folds
-                currentFold = stim(floor((length(stim)*(fold-1)/folds)) + 1:floor(length(stim)*fold/folds));
+                currentFold = internalRepresentationTimeDomain(floor((length(internalRepresentationTimeDomain)*(fold-1)/folds)) + 1:floor(length(internalRepresentationTimeDomain)*fold/folds));
                 summation = summation + currentFold;
             end
-            stim4 = imresize(summation', [1 length(stim)], 'nearest');
+            stim4 = imresize(summation', [1 length(internalRepresentationTimeDomain)], 'nearest');
             stim5 = flipud(stim4');
+            stim5(1:app.currentSound.signalStart) = 0.0001;
+            stim5(app.currentSound.signalStop:end) = 0.0001;
             % Play sound
             PlaySound(real(stim5), app.currentSound.samplingRate, 6, app.System.test.callibratedBaseline);
         end
@@ -166,19 +166,12 @@ classdef testReport < matlab.apps.AppBase
             app.bInternalRepresentationPanel.FontSize = 14;
             app.bInternalRepresentationPanel.Position = [190 18 770 602];
 
-            % Create Internal Representation frequency chart
+            % Create frequency chart
             app.UIAxes = uiaxes(app.bInternalRepresentationPanel);
             title(app.UIAxes, 'Internal Representation')
             xlabel(app.UIAxes, 'Frequency')
             ylabel(app.UIAxes, 'Amplitude')
-            app.UIAxes.Position = [8 120 380 300];
-
-            % Create Real Sound frequency chart
-            app.UIAxes2 = uiaxes(app.bInternalRepresentationPanel);
-            title(app.UIAxes2, 'Presented Sound')
-            xlabel(app.UIAxes2, 'Frequency')
-            ylabel(app.UIAxes2, 'Amplitude')
-            app.UIAxes2.Position = [400 120 380 300];
+            app.UIAxes.Position = [8 60 750 510];
 
             % Create PlaySoundButton
             app.PlaySoundButton = uibutton(app.bInternalRepresentationPanel, 'push');

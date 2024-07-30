@@ -11,7 +11,9 @@
         % Right ear hearing
 % We also have a txt file with the test data
 %   - Test Data
+        % Start time
         % End time
+        % Duration
         % Number of trials
 % Create a folder called Sounds
 % Each sound is its own folder within the Sounds folder
