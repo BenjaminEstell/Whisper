@@ -89,7 +89,7 @@ classdef Test < matlab.apps.AppBase
         end
 
         function processSoundCardKeyPress(app, event, KeyData)
-            if KeyData.Key == 'enter'
+            if KeyData.Key == 'return'
                 app.nextSound();
             end
         end
@@ -130,7 +130,8 @@ classdef Test < matlab.apps.AppBase
             app.SoundCardSoundCountLabel.Text = 'Sound ' + string(app.currentSound) + ' of ' + string(app.numSounds);
             app.SoundCardSoundLabel.Visible = true;
             app.SoundCardSoundLabel.Text = '/' + app.currentSoundObj.name + '/';
-            
+            set(app.UIFigure, 'KeyPressFcn', @app.processSoundCardKeyPress);
+
             % generate the stimulus matrix for the next sound
             app.currentSoundObj.stimulusMatrix = GenerateStimulusMatrix(app.currentSoundObj);
         end
@@ -213,12 +214,12 @@ classdef Test < matlab.apps.AppBase
             % ylabel('Amplitude (dB)');
             
             % Plot human voiced sound in frequency domain
-            figure(3);
-            spect = imresize(abs(app.currentSoundObj.humanVoicedSoundFrequencyDomain), [app.currentSoundObj.numFreqs 1], "nearest");
-            plot(spect(1:app.currentSoundObj.numFreqs));
-            title('Human-Voiced Sound');
-            xlabel('Frequency (Hz)');
-            ylabel('Amplitude');
+            % figure(3);
+            % spect = imresize(abs(app.currentSoundObj.humanVoicedSoundFrequencyDomain), [app.currentSoundObj.numFreqs 1], "nearest");
+            % plot(spect(1:app.currentSoundObj.numFreqs));
+            % title('Human-Voiced Sound');
+            % xlabel('Frequency (Hz)');
+            % ylabel('Amplitude');
 
         end
     end
@@ -316,7 +317,6 @@ classdef Test < matlab.apps.AppBase
             app.currentSoundObj = app.sounds{app.currentSound};
             app.currentTrial = 1;
             app.currentSoundObj.stimulusMatrix = GenerateStimulusMatrix(app.currentSoundObj);
-            set(app.UIFigure, 'KeyPressFcn', @app.processSoundCardKeyPress);
 
             % Create SoundCardSoundLabel
             app.SoundCardSoundLabel = uilabel(app.UIFigure);

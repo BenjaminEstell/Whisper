@@ -12,9 +12,9 @@ function stimulusMatrix = GenerateStimulusMatrix(sound)
         stimulusMatrix(jj, :) = sound.humanVoicedSoundFrequencyDomain;
 
         for ii = 1:length(formantFreqs)
-            randBin = floor(rand() * sound.numFreqs-8)+4;
+            randBin = floor(rand() * sound.numFreqs-8)+5;
             % swap the amplitude of the formant frequency, plus the 4 frequencies on either side with a random
-            % collection of frequency 9 frequencies\
+            % collection of frequency 9 frequencies
             randBinFreqs = randBin-4:randBin+4;
             peakFreqs= formantFreqs(ii)-4:formantFreqs(ii)+4;
             for kk = 1:9
