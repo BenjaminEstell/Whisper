@@ -16,6 +16,7 @@ classdef Sound
         responseVector
         type                                TestType
         internalRepresentation
+        internalRepresentationTimeDomain
         formantFrequencies
         signalStart
         signalStop
@@ -74,13 +75,13 @@ classdef Sound
 
          % determines the frequencies of the first n formants of the Sound
          function obj = getFormants(obj, n)
-             % perform peak detection
-             soundFreqDomain = fft(obj.humanVoicedSoundTimeDomain);
-             [peaks, locations] = findpeaks(abs(soundFreqDomain(1:obj.numFreqs)), 1:obj.numFreqs,'MinPeakProminence',2,'Annotate','extents');
-             % sort peaks
-             [~, I] = sort(peaks, 'descend');
-             % copy peaks of n highest amplitude into a new array
-             sortedLocations = locations(I);
+             % Convert to freq domain and smooth
+             soundFreqDomain = abs(fft(obj.humanVoicedSoundTimeDomain));
+             firstPass = SegmentedSmooth(soundFreqDomain, 20, 2);
+             secondPass = SegmentedSmooth(firstPass, 20, 2);
+             % perform peak detection and sort
+             [~, sortedLocations] = findpeaks(secondPass(1:obj.numFreqs), 1:obj.numFreqs,'SortStr', 'descend', 'MinPeakProminence',1.5);
+             
              % save formant frequencies in obj.formatFrequencies
              obj.formantFrequencies = sortedLocations(1:n);
          end

@@ -8,15 +8,16 @@ function stimulusMatrix = GenerateStimulusMatrix(sound)
     stimulusMatrix = -100 * ones(sound.numTrials, sound.numSamples);
     binnum = getFreqBins(sound.samplingRate, sound.numSamples, sound.numFreqs, 0, sound.numSamples);
     formantFreqs = sound.formantFrequencies;
+    binWidth = 8;
     for jj = 1:sound.numTrials
         stimulusMatrix(jj, :) = sound.humanVoicedSoundFrequencyDomain;
 
         for ii = 1:length(formantFreqs)
-            randBin = floor(rand() * sound.numFreqs-8)+5;
-            % swap the amplitude of the formant frequency, plus the 4 frequencies on either side with a random
-            % collection of frequency 9 frequencies
-            randBinFreqs = randBin-4:randBin+4;
-            peakFreqs= formantFreqs(ii)-4:formantFreqs(ii)+4;
+            randBin = floor(rand() * sound.numFreqs-binWidth*2)+binWidth+1;
+            % swap the amplitude of the formant frequency, plus the binWidth frequencies on either side with a random
+            % collection of frequency binWidth*2 + 1 frequencies
+            randBinFreqs = randBin-binWidth:randBin+binWidth;
+            peakFreqs= formantFreqs(ii)-binWidth:formantFreqs(ii)+binWidth;
             for kk = 1:9
                 temp = stimulusMatrix(jj, binnum==randBinFreqs(kk));
                 stimulusMatrix(jj, binnum==randBinFreqs(kk)) = stimulusMatrix(jj, binnum==peakFreqs(kk));

@@ -14,8 +14,12 @@ classdef testReport < matlab.apps.AppBase
         PlaySoundButton               matlab.ui.control.Button
         SoundListBox                  matlab.ui.control.ListBox
         SoundListBoxLabel             matlab.ui.control.Label
+        showInternalRepresentationButton matlab.ui.control.CheckBox
+        showHumanVoicedSoundButton    matlab.ui.control.CheckBox
         System                        Whisper
         currentSound                  Sound
+        showIR                        
+        showHVS
     end
 
     % Callbacks that handle component events
@@ -57,39 +61,52 @@ classdef testReport < matlab.apps.AppBase
             app.bInternalRepresentationPanel.Title = value + " Internal Representation";
 
             % Update graphs
-            x = 1:app.currentSound.numFreqs;
-            OGSound = imresize(app.currentSound.humanVoicedSoundFrequencyDomain, [app.currentSound.numFreqs 1], "nearest");
-            internalRepresentation = imresize(app.currentSound.internalRepresentation, [app.currentSound.numFreqs 1], "nearest");
-            % Scale internal representation to match the OG sound
-            match = rms(OGSound(1:app.currentSound.numFreqs)) / rms(internalRepresentation);
-            plot(app.UIAxes, x, (abs(internalRepresentation).*match) + 0.01, 'blue', LineWidth=2);
-            hold(app.UIAxes, "on");
-            plot(app.UIAxes, x, abs(OGSound(1:app.currentSound.numFreqs)), 'red', LineWidth=2);
-            legend(app.UIAxes, 'Internal Representation', 'Human-Voiced Sound');
-            hold(app.UIAxes, "off");
+            app.UpdatePlot();
         end
 
         function PlayInternalRepresentation(app, event)
-            internalRepresentationTimeDomain = ifft(app.currentSound.internalRepresentation);
-            % mirror sound and stretch
-            folds = floor(app.currentSound.numSamples / app.currentSound.numFreqs);
-            summation = zeros(floor(length(internalRepresentationTimeDomain)/folds));
-            for fold = 1:folds
-                currentFold = internalRepresentationTimeDomain(floor((length(internalRepresentationTimeDomain)*(fold-1)/folds)) + 1:floor(length(internalRepresentationTimeDomain)*fold/folds));
-                summation = summation + currentFold;
-            end
-            stim4 = imresize(summation', [1 length(internalRepresentationTimeDomain)], 'nearest');
-            stim5 = flipud(stim4');
-            stim5(1:app.currentSound.signalStart) = 0.0001;
-            stim5(app.currentSound.signalStop:end) = 0.0001;
             % Play sound
-            PlaySound(real(stim5), app.currentSound.samplingRate, 6, app.System.test.callibratedBaseline);
+            PlaySound(app.currentSound.internalRepresentationTimeDomain, app.currentSound.samplingRate, 6, app.System.test.callibratedBaseline);
         end
 
         function listOut = ListConversion(app, listIn)
             listOut = {};
             for ii = 1:length(listIn)
                 listOut{end + 1} = char(string(listIn{ii}.name));
+            end
+        end
+
+        function ToggleInternalRepresentation(app, event)
+            app.showIR = ~app.showIR;
+            app.UpdatePlot();
+        end
+
+        function ToggleHumanVoicedSound(app, event)
+            app.showHVS = ~app.showHVS;
+            app.UpdatePlot();
+        end
+
+        % Updates the plot
+        function UpdatePlot(app)
+            x = 1:app.currentSound.numFreqs;
+            OGSound = imresize(app.currentSound.humanVoicedSoundFrequencyDomain, [app.currentSound.numFreqs 1], "nearest");
+            internalRepresentation = imresize(app.currentSound.internalRepresentation, [app.currentSound.numFreqs 1], "nearest");
+            % Scale internal representation to match the OG sound
+            match = rms(OGSound(1:app.currentSound.numFreqs)) / rms(internalRepresentation);
+            if app.showIR && app.showHVS
+                area(app.UIAxes, x, (abs(internalRepresentation).*match), FaceColor='b', EdgeColor='b', FaceAlpha=0.3, EdgeAlpha=0.3);
+                hold(app.UIAxes, "on");
+                area(app.UIAxes, x, abs(OGSound(1:app.currentSound.numFreqs)), FaceColor='r', EdgeColor='r', FaceAlpha=0.3, EdgeAlpha=0.3);
+                legend(app.UIAxes, 'Internal Representation', 'Human-Voiced Sound');
+                hold(app.UIAxes, "off");
+            elseif app.showIR && ~app.showHVS
+                area(app.UIAxes, x, (abs(internalRepresentation).*match), FaceColor='b', EdgeColor='b', FaceAlpha=0.3, EdgeAlpha=0.3);
+                legend(app.UIAxes, 'Internal Representation');
+            elseif app.showHVS && ~ app.showIR
+                area(app.UIAxes, x, abs(OGSound(1:app.currentSound.numFreqs)), FaceColor='r', EdgeColor='r', FaceAlpha=0.3, EdgeAlpha=0.3);
+                legend(app.UIAxes, 'Human-Voiced Sound');
+            else
+                cla(app.UIAxes);
             end
         end
     end
@@ -137,6 +154,8 @@ classdef testReport < matlab.apps.AppBase
         function createTestReportComponents(app, UIFigure)
             app.UIFigure = UIFigure;
             app.currentSound = app.System.test.sounds{1};
+            app.showIR = true;
+            app.showHVS = true;
 
 
             % Create TestReportPanel
@@ -169,7 +188,7 @@ classdef testReport < matlab.apps.AppBase
             % Create frequency chart
             app.UIAxes = uiaxes(app.bInternalRepresentationPanel);
             title(app.UIAxes, 'Internal Representation')
-            xlabel(app.UIAxes, 'Frequency')
+            xlabel(app.UIAxes, 'Frequency (Hz)')
             ylabel(app.UIAxes, 'Amplitude')
             app.UIAxes.Position = [8 60 750 510];
 
@@ -186,6 +205,22 @@ classdef testReport < matlab.apps.AppBase
             app.TestReportHomeButton.FontSize = 18;
             app.TestReportHomeButton.Position = [16 28 150 45];
             app.TestReportHomeButton.Text = 'Home';
+            
+            % Create showInternalRepresentationButton
+            app.showInternalRepresentationButton = uicheckbox(app.bInternalRepresentationPanel);
+            app.showInternalRepresentationButton.ValueChangedFcn = createCallbackFcn(app, @ToggleInternalRepresentation, true);
+            app.showInternalRepresentationButton.Text = 'show Internal Representation';
+            app.showInternalRepresentationButton.FontSize = 14;
+            app.showInternalRepresentationButton.Position = [40 40 200 22];
+            app.showInternalRepresentationButton.Value = true;
+
+            % Create showHumanVoicedSoundButton
+            app.showHumanVoicedSoundButton = uicheckbox(app.bInternalRepresentationPanel);
+            app.showHumanVoicedSoundButton.ValueChangedFcn = createCallbackFcn(app, @ToggleHumanVoicedSound, true);
+            app.showHumanVoicedSoundButton.Text = 'show Human Voiced Sound';
+            app.showHumanVoicedSoundButton.FontSize = 14;
+            app.showHumanVoicedSoundButton.Position = [40 10 200 22];
+            app.showHumanVoicedSoundButton.Value = true;
 
             app.toggleLabel();
         end

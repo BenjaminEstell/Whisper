@@ -51,7 +51,7 @@ classdef Test < matlab.apps.AppBase
             % If we have finished the last trial, move on to the next sound
             if app.currentTrial == app.numTrials
                 % generate the internal representation for this sound
-                app.currentSoundObj.internalRepresentation = GenerateInternalRepresentation(app.currentSoundObj);
+                [app.currentSoundObj.internalRepresentation, app.currentSoundObj.internalRepresentationTimeDomain] = GenerateInternalRepresentation(app.currentSoundObj);
                 % save the Sound object back into the Sounds array
                 app.sounds{app.currentSound} = app.currentSoundObj;
                 % if we have finished the last sound, end the test
@@ -192,11 +192,11 @@ classdef Test < matlab.apps.AppBase
             % set values before and after the real signal to 0.001
             stim4(1:app.currentSoundObj.signalStart) = 0.0001;
             stim4(app.currentSoundObj.signalStop:end) = 0.0001;
-            figure(2);
-            plot(real(stim4));
-            title('Computer-Generated Stimulus');
-            xlabel('Sample Number');
-            ylabel('Amplitude');
+            % figure(2);
+            % plot(real(stim4));
+            % title('Computer-Generated Stimulus');
+            % xlabel('Sample Number');
+            % ylabel('Amplitude');
 
             % Play sound
             PlaySound(real(stim4), app.currentSoundObj.samplingRate, 10, app.callibratedBaseline);
@@ -214,12 +214,12 @@ classdef Test < matlab.apps.AppBase
             % ylabel('Amplitude (dB)');
             
             % Plot human voiced sound in frequency domain
-            % figure(3);
-            % spect = imresize(abs(app.currentSoundObj.humanVoicedSoundFrequencyDomain), [app.currentSoundObj.numFreqs 1], "nearest");
-            % plot(spect(1:app.currentSoundObj.numFreqs));
-            % title('Human-Voiced Sound');
-            % xlabel('Frequency (Hz)');
-            % ylabel('Amplitude');
+            figure(3);
+            spect = imresize(abs(app.currentSoundObj.humanVoicedSoundFrequencyDomain), [app.currentSoundObj.numFreqs 1], "nearest");
+            plot(spect(1:app.currentSoundObj.numFreqs));
+            title('Human-Voiced Sound');
+            xlabel('Frequency (Hz)');
+            ylabel('Amplitude');
 
         end
     end

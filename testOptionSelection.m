@@ -49,6 +49,7 @@ classdef testOptionSelection < matlab.apps.AppBase
         WordRecognitionButton      matlab.ui.control.RadioButton
         SyllableRecognitionButton  matlab.ui.control.RadioButton
         System                     Whisper
+        savedPathChoosen
     end
 
     
@@ -146,18 +147,7 @@ classdef testOptionSelection < matlab.apps.AppBase
             else
                 app.numCheckedSyllables = app.numCheckedSyllables - 1;
             end
-            if app.numCheckedSyllables == 0
-                app.SelectNumberofTrialsPanel.Enable = false;
-                app.NextPatientDataButton.Enable = false;
-            else
-                app.SelectNumberofTrialsPanel.Enable = true;
-                app.NextPatientDataButton.Enable = true;
-            end
-            if app.numCheckedSyllables ~= 26
-                app.allCheckBox.Value = false;
-            elseif app.numCheckedSyllables == 26
-                app.allCheckBox.Value = true;
-            end
+            app.UpdateNextButton();
         end
 
         % Value changed function: trialsEditField
@@ -217,6 +207,27 @@ classdef testOptionSelection < matlab.apps.AppBase
             folders = split(path, '\');
             folder = folders(end);
             app.BrowseButton.Text = '\' + string(folder);
+            app.savedPathChoosen = true;
+            app.UpdateNextButton();
+        end
+
+        function UpdateNextButton(app)
+            if ~app.savedPathChoosen
+                app.NextPatientDataButton.Enable = false;
+            else
+                if app.numCheckedSyllables == 0
+                    app.SelectNumberofTrialsPanel.Enable = false;
+                    app.NextPatientDataButton.Enable = false;
+                else
+                    app.SelectNumberofTrialsPanel.Enable = true;
+                    app.NextPatientDataButton.Enable = true;
+                end
+                if app.numCheckedSyllables ~= 26
+                    app.allCheckBox.Value = false;
+                elseif app.numCheckedSyllables == 26
+                    app.allCheckBox.Value = true;
+                end
+            end
         end
     end
 
@@ -226,6 +237,8 @@ classdef testOptionSelection < matlab.apps.AppBase
         function createComponents(app, UIFigure, WhisperIn)
             app.System = WhisperIn;
             app.UIFigure = UIFigure;
+
+            app.savedPathChoosen = false;
 
             % Create TestOptionsPanel
             app.TestOptionsPanel = uipanel(app.UIFigure);
