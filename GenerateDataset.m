@@ -94,7 +94,7 @@ function GenerateDataset(test)
             match = rms(OGSound(1:sound.numFreqs)) / rms(internalRepresentation);
             fig1 = figure('Visible','off');
             HVSChart = axes(fig1);
-            area(HVSChart, x, abs(OGSound(1:sound.numFreqs)), FaceColor='r', EdgeColor='r', FaceAlpha=0.3, EdgeAlpha=0.3);
+            plot(HVSChart, x, abs(OGSound(1:sound.numFreqs)));
             legend(HVSChart, 'Human-Voiced Sound');
             xlabel(HVSChart, "Frequency (Hz)");
             ylabel(HVSChart, "Amplitude");
@@ -103,7 +103,7 @@ function GenerateDataset(test)
             % Save IR as png
             fig2 = figure('Visible','off');
             IRChart = axes(fig2);
-            area(IRChart, x, (abs(internalRepresentation).*match), FaceColor='b', EdgeColor='b', FaceAlpha=0.3, EdgeAlpha=0.3);
+            plot(IRChart, x, (abs(internalRepresentation).*match));
             legend(IRChart, 'Internal Representation');
             xlabel(IRChart, "Frequency (Hz)");
             ylabel(IRChart, "Amplitude");
@@ -126,7 +126,7 @@ function GenerateDataset(test)
             % save responseVector as png
             fig4 = figure('Visible','off');
             responseVectorChart = axes(fig4);
-            scatter(responseVectorChart, 1:sound.numTrials, sound.responseVector);xlabel(sound.CombinedChart, "Frequency (Hz)");
+            scatter(responseVectorChart, 1:sound.numTrials, sound.responseVector);
             xlabel(responseVectorChart, "Trial Number");
             ylabel(responseVectorChart, "Patient Response (1=similar, -1=not similar)");
             title(responseVectorChart, "Patient Responses");

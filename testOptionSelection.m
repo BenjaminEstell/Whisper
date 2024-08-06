@@ -49,7 +49,8 @@ classdef testOptionSelection < matlab.apps.AppBase
         WordRecognitionButton      matlab.ui.control.RadioButton
         SyllableRecognitionButton  matlab.ui.control.RadioButton
         System                     Whisper
-        savedPathChoosen
+        savedPathChosen
+        selectedTestType
     end
 
     
@@ -63,24 +64,9 @@ classdef testOptionSelection < matlab.apps.AppBase
 
         % Selection changed function: SelectTestTypeButtonGroup
         function TestTypeSelection(app, event)
-            selectedButton = app.SelectTestTypeButtonGroup.SelectedObject;
-            if selectedButton == app.SyllableRecognitionButton
-                app.SelectSyllablesPanel.Enable = true;
-                app.SelectWordsPanel.Enable = false;
-                if app.numCheckedSyllables == 0
-                    app.SelectNumberofTrialsPanel.Enable = false;
-                    app.NextPatientDataButton.Enable = false;
-                else
-                    app.SelectNumberofTrialsPanel.Enable = true;
-                    app.NextPatientDataButton.Enable = true;
-                end
-            end
-            if selectedButton == app.WordRecognitionButton
-                app.SelectSyllablesPanel.Enable = false;
-                app.SelectWordsPanel.Enable = true;
-                app.SelectNumberofTrialsPanel.Enable = true;
-                app.NextPatientDataButton.Enable = true;
-            end
+            app.selectedTestType = app.SelectTestTypeButtonGroup.SelectedObject;
+            app.UpdateNextButton();
+            app.UpdateTestTypePanel();
         end
 
         % Value changed function: allCheckBox
@@ -116,26 +102,20 @@ classdef testOptionSelection < matlab.apps.AppBase
             app.daCheckBox.Value = value;
             app.baCheckBox.Value = value;
 
-            % if a box is checked, enable number of trials section
-            if app.SelectTestTypeButtonGroup.SelectedObject == app.SyllableRecognitionButton
-                if value
-                    app.SelectNumberofTrialsPanel.Enable = true;
-                    app.NextPatientDataButton.Enable = true;
-                    app.numCheckedSyllables = 26;
-                else
-                    app.SelectNumberofTrialsPanel.Enable = false;
-                    app.NextPatientDataButton.Enable = false;
-                    app.numCheckedSyllables = 0;
-                end
+            if app.allCheckBox.Value
+                app.numCheckedSyllables = 26;
+            else
+                app.numCheckedSyllables = 0;
             end
+
+            app.UpdateNextButton();
+            app.UpdateTestTypePanel();
         end
 
         % Value changed function: wordsEditField
         function WordSelection(app, event)
-            if app.SelectTestTypeButtonGroup.SelectedObject == app.WordRecognitionButton
-                app.SelectNumberofTrialsPanel.Enable = true;
-                app.NextPatientDataButton.Enable = true;
-            end
+            app.UpdateNextButton();
+            app.UpdateTestTypePanel();
         end
 
         % Value changed function: baCheckBox, daCheckBox, faCheckBox, 
@@ -148,6 +128,7 @@ classdef testOptionSelection < matlab.apps.AppBase
                 app.numCheckedSyllables = app.numCheckedSyllables - 1;
             end
             app.UpdateNextButton();
+            app.UpdateTestTypePanel();
         end
 
         % Value changed function: trialsEditField
@@ -207,25 +188,52 @@ classdef testOptionSelection < matlab.apps.AppBase
             folders = split(path, '\');
             folder = folders(end);
             app.BrowseButton.Text = '\' + string(folder);
-            app.savedPathChoosen = true;
+            app.savedPathChosen = true;
             app.UpdateNextButton();
+            app.UpdateTestTypePanel();
         end
 
         function UpdateNextButton(app)
-            if ~app.savedPathChoosen
+            if ~app.savedPathChosen
                 app.NextPatientDataButton.Enable = false;
             else
-                if app.numCheckedSyllables == 0
-                    app.SelectNumberofTrialsPanel.Enable = false;
-                    app.NextPatientDataButton.Enable = false;
-                else
-                    app.SelectNumberofTrialsPanel.Enable = true;
+                if app.selectedTestType == app.SyllableRecognitionButton
+                    if app.numCheckedSyllables == 0
+                        app.NextPatientDataButton.Enable = false;
+                    else
+                        app.NextPatientDataButton.Enable = true;
+                    end
+                elseif app.selectedTestType == app.WordRecognitionButton
                     app.NextPatientDataButton.Enable = true;
                 end
-                if app.numCheckedSyllables ~= 26
-                    app.allCheckBox.Value = false;
-                elseif app.numCheckedSyllables == 26
-                    app.allCheckBox.Value = true;
+            end
+        end
+
+        function UpdateTestTypePanel(app)
+            if app.selectedTestType == app.SyllableRecognitionButton
+                app.SelectSyllablesPanel.Enable = true;
+                app.SelectWordsPanel.Enable = false;
+                if app.savedPathChosen
+                    if app.numCheckedSyllables == 0
+                        app.SelectNumberofTrialsPanel.Enable = false;                    
+                    else
+                        app.SelectNumberofTrialsPanel.Enable = true;
+                    end
+                    if app.numCheckedSyllables ~= 26
+                        app.allCheckBox.Value = false;
+                    elseif app.numCheckedSyllables == 26
+                        app.allCheckBox.Value = true;
+                    end
+                else
+                    app.SelectNumberofTrialsPanel.Enable = false;                    
+                end
+            elseif app.selectedTestType == app.WordRecognitionButton
+                app.SelectSyllablesPanel.Enable = false;
+                app.SelectWordsPanel.Enable = true;
+                if app.savedPathChosen
+                    app.SelectNumberofTrialsPanel.Enable = true;
+                else
+                    app.SelectNumberofTrialsPanel.Enable = false;
                 end
             end
         end
@@ -238,7 +246,7 @@ classdef testOptionSelection < matlab.apps.AppBase
             app.System = WhisperIn;
             app.UIFigure = UIFigure;
 
-            app.savedPathChoosen = false;
+            app.savedPathChosen = false;
 
             % Create TestOptionsPanel
             app.TestOptionsPanel = uipanel(app.UIFigure);
@@ -563,6 +571,8 @@ classdef testOptionSelection < matlab.apps.AppBase
             app.BrowseButton.FontSize = 14;
             app.BrowseButton.Position = [37 17 119 25];
             app.BrowseButton.Text = 'Browse';
+
+            app.selectedTestType = app.SyllableRecognitionButton;
         end
         
     end

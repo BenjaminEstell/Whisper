@@ -15,6 +15,7 @@ function [internalRepresentation, internalRepresentationTimeDomain] = GenerateIn
     end
     stim4 = imresize(summation', [1 length(internalRepresentationTimeDomain)], 'nearest');
     stim5 = flipud(stim4');
+    stim5 = stim5 .* (rms(sound.humanVoicedSoundTimeDomain) / rms(stim5));
     stim5(1:sound.signalStart) = 0.0001;
     stim5(sound.signalStop:end) = 0.0001;
     internalRepresentationTimeDomain = stim5;

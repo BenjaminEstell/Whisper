@@ -105,12 +105,12 @@ classdef Test < matlab.apps.AppBase
             app.duration = app.endTimestamp - app.startTimestamp;
             % save the test data in the Test object
             app.System.test = app;
-            % generate the dataset
-            GenerateDataset(app);
 
             % Build test completion UI
             testReportView = testReport();
             testReportView.createTestCompleteCardComponents(app.UIFigure, app.System);
+            % generate the dataset
+            GenerateDataset(app);
         end
 
         function NextSoundCard(app)
@@ -170,15 +170,6 @@ classdef Test < matlab.apps.AppBase
             xlabel('Frequency (Hz)');
             ylabel('Amplitude');
 
-            % figure(5);
-            % dbgg = 20*log10(stimFrequencyDomain/10);
-            % %plot(mag2db(abs(stimFrequencyDomain)));
-            % plot(real(dbgg));
-            % title('Computer-Generated Stimulus');
-            % xlabel('Frequency (Hz)');
-            % ylabel('Amplitude (dB)');
-
-
             % Convert stimulus into the time domain and plot
             stim = ifft(app.currentSoundObj.stimulusMatrix(app.currentTrial, :));
             % mirror sound and stretch
@@ -192,26 +183,9 @@ classdef Test < matlab.apps.AppBase
             % set values before and after the real signal to 0.001
             stim4(1:app.currentSoundObj.signalStart) = 0.0001;
             stim4(app.currentSoundObj.signalStop:end) = 0.0001;
-            % figure(2);
-            % plot(real(stim4));
-            % title('Computer-Generated Stimulus');
-            % xlabel('Sample Number');
-            % ylabel('Amplitude');
 
             % Play sound
             PlaySound(real(stim4), app.currentSoundObj.samplingRate, 10, app.callibratedBaseline);
-
-            % Plot human voiced sound in time domain
-            % figure(4);
-            % % Convert to dB
-            % humanVoicedSoundTimeDomainDB = mag2db(abs(app.currentSoundObj.humanVoicedSoundTimeDomain));
-            % % Sets the maximum amplitude to 0dB
-            % humanVoicedSoundTimeDomainDB = humanVoicedSoundTimeDomainDB - max(humanVoicedSoundTimeDomainDB);
-            % 
-            % plot(app.currentSoundObj.humanVoicedSoundTimeDomain);
-            % title('Human-Voiced Sound');
-            % xlabel('Sample Number');
-            % ylabel('Amplitude (dB)');
             
             % Plot human voiced sound in frequency domain
             figure(3);

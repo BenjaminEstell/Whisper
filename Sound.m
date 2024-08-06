@@ -78,10 +78,15 @@ classdef Sound
              % Convert to freq domain and smooth
              soundFreqDomain = abs(fft(obj.humanVoicedSoundTimeDomain));
              firstPass = SegmentedSmooth(soundFreqDomain, 20, 2);
-             secondPass = SegmentedSmooth(firstPass, 20, 2);
+             secondPass = SegmentedSmooth(firstPass, 10, 2);
              % perform peak detection and sort
-             [~, sortedLocations] = findpeaks(secondPass(1:obj.numFreqs), 1:obj.numFreqs,'SortStr', 'descend', 'MinPeakProminence',1.5);
+             [~, sortedLocations] = findpeaks(secondPass(1:obj.numFreqs), 1:obj.numFreqs,'SortStr', 'descend', 'MinPeakProminence',1);
              
+             % figure(1);
+             % plot(soundFreqDomain(1:obj.numFreqs));
+             % figure(2);
+             % plot(secondPass(1:obj.numFreqs));
+             % sortedLocations
              % save formant frequencies in obj.formatFrequencies
              obj.formantFrequencies = sortedLocations(1:n);
          end
