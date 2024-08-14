@@ -25,14 +25,13 @@ classdef Test < matlab.apps.AppBase
         currentSoundObj             Sound
         sounds          
         mode                        TestType
-        patientID                   string
         testID                      int32
         startTimestamp              
         endTimestamp                
         duration                    
         patient                     Patient
         callibratedBaseline         double
-        SavePath                    string
+        savePath                    string
     end
 
     % Callbacks that handle component events
@@ -208,7 +207,6 @@ classdef Test < matlab.apps.AppBase
             obj.numSounds = 0;
             obj.mode = TestType.syllable;
             obj.sounds = [];
-            obj.patientID = '';
             obj.testID = randi([0, 2^32], 1, 1);
             obj.startTimestamp = datetime();
             obj.patient = Patient("0");

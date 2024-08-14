@@ -182,7 +182,7 @@ classdef testOptionSelection < matlab.apps.AppBase
             f = figure('Renderer', 'painters', 'Position', [-100 -100 0 0]); %create a dummy figure so that uigetfile doesn't minimize our GUI
             path = uigetdir();
             delete(f);
-            app.System.test.SavePath = path;
+            app.System.test.savePath = path;
 
             % Update UI
             folders = split(path, '\');

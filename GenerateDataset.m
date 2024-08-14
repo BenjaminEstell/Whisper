@@ -36,7 +36,7 @@
 function GenerateDataset(test)
     % Create dataset folder
     folderName = string(test.patient.ID) + "-" + strrep(string(test.startTimestamp), ':', '.');
-    truncatedPath = split(test.SavePath, ':');
+    truncatedPath = split(test.savePath, ':');
     savePath = truncatedPath(2);
     [status, msg, msgID] = mkdir(savePath, folderName);
     if ~status
