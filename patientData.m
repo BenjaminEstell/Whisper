@@ -6,7 +6,7 @@ classdef patientData < matlab.apps.AppBase
         PatientDataPanel               matlab.ui.container.Panel
         YearssincerightearhearingdeviceinsertionEditField  matlab.ui.control.NumericEditField
         YearssincerightearhearingdeviceinsertionEditField_2Label  matlab.ui.control.Label
-        NextVolumeCallibrationButton   matlab.ui.control.Button
+        BeginTestButton   matlab.ui.control.Button
         YearssinceleftearhearingdeviceinsertionEditField  matlab.ui.control.NumericEditField
         YearssinceleftearhearingdeviceinsertionEditFieldLabel  matlab.ui.control.Label
         Panel                          matlab.ui.container.Panel
@@ -46,8 +46,8 @@ classdef patientData < matlab.apps.AppBase
             end
         end
 
-        % Button pushed function: NextVolumeCallibrationButton
-        function VolumeCallibration(app, event)
+        % Button pushed function: BeginTestButton
+        function BeginTest(app, event)
             % Save selections
             app.System.test.patient.ID = app.PatientIDEditField.Value;
             app.System.test.patient.DOB = app.DateofBirthDatePicker.Value;
@@ -61,9 +61,14 @@ classdef patientData < matlab.apps.AppBase
             for ii = 1:length(app.UIFigure.Children)
                 app.UIFigure.Children(ii).Visible = false;
             end
-            % Build patient data UI
-            volumeCallibrationView = volumeCallibration();
-            volumeCallibrationView.createComponents(app.UIFigure, app.System);
+            % Build test UI
+            if (app.System.practiceTest)
+                practice = PracticeTest();
+                practice.createSoundCardComponents(app.UIFigure, app.System);
+            else
+                bimodalIntegrationTestView = app.System.test;
+                bimodalIntegrationTestView.createSoundCardComponents(app.UIFigure, app.System);
+            end
         end
     end
 
@@ -168,12 +173,14 @@ classdef patientData < matlab.apps.AppBase
             app.YearssinceleftearhearingdeviceinsertionEditField.Position = [301 203 175 35];
             app.YearssinceleftearhearingdeviceinsertionEditField.FontSize = 14;
 
-            % Create NextVolumeCallibrationButton
-            app.NextVolumeCallibrationButton = uibutton(app.PatientDataPanel, 'push');
-            app.NextVolumeCallibrationButton.ButtonPushedFcn = createCallbackFcn(app, @VolumeCallibration, true);
-            app.NextVolumeCallibrationButton.FontSize = 18;
-            app.NextVolumeCallibrationButton.Position = [698 23 250 45];
-            app.NextVolumeCallibrationButton.Text = 'Next: Volume Callibration';
+            % Create BeginTestButton
+            app.BeginTestButton = uibutton(app.PatientDataPanel, 'push');
+            app.BeginTestButton.ButtonPushedFcn = createCallbackFcn(app, @BeginTest, true);
+            app.BeginTestButton.FontSize = 14;
+            app.BeginTestButton.FontWeight = 'bold';
+            app.BeginTestButton.FontColor = [0.851 0.3255 0.098];
+            app.BeginTestButton.Position = [698 23 250 45];
+            app.BeginTestButton.Text = 'Begin Test';
 
             % Create YearssincerightearhearingdeviceinsertionEditField_2Label
             app.YearssincerightearhearingdeviceinsertionEditField_2Label = uilabel(app.PatientDataPanel);

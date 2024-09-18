@@ -60,12 +60,12 @@ classdef Sound
             % Identify signal start and stop
             rollingAverage = movmean(abs(obj.humanVoicedSoundTimeDomain), 1000);
             point = 1;
-            while rollingAverage(point) < 0.003 && point < length(obj.humanVoicedSoundTimeDomain)
+            while rollingAverage(point) < 0.003 && point < length(obj.humanVoicedSoundTimeDomain) - 4
                 point = point + 4;
             end
             start = point;
             
-            while rollingAverage(point) > 0.001 && point < length(obj.humanVoicedSoundTimeDomain)
+            while rollingAverage(point) > 0.001 && point < length(obj.humanVoicedSoundTimeDomain) - 4
                 point = point + 4;
             end
             stop = point;
@@ -89,6 +89,11 @@ classdef Sound
              % sortedLocations
              % save formant frequencies in obj.formatFrequencies
              obj.formantFrequencies = sortedLocations(1:n);
+         end
+
+         % Sets the name of the sound
+         function obj = setName(obj, nameIn)
+             obj.name = nameIn;
          end
     end
 end

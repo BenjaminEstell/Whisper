@@ -1,0 +1,137 @@
+<deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
+  <configuration build-checksum="3862031128" file="C:\Users\benja\Documents\Baylor\Research\Whisper\Whisper.prj" location="C:\Users\benja\Documents\Baylor\Research\Whisper" name="Whisper" preferred-package-location="C:\Users\benja\Documents\Baylor\Research\Whisper\Whisper\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
+    <param.appname>Whisper</param.appname>
+    <param.icon>${PROJECT_ROOT}\Whisper_resources\icon.ico</param.icon>
+    <param.icons>
+      <file>${PROJECT_ROOT}\Whisper_resources\icon_48.png</file>
+      <file>${PROJECT_ROOT}\Whisper_resources\icon_32.png</file>
+      <file>${PROJECT_ROOT}\Whisper_resources\icon_24.png</file>
+      <file>${PROJECT_ROOT}\Whisper_resources\icon_16.png</file>
+    </param.icons>
+    <param.version>0.3</param.version>
+    <param.authnamewatermark>Ben Estell</param.authnamewatermark>
+    <param.email />
+    <param.company>Baylor University</param.company>
+    <param.summary />
+    <param.description />
+    <param.screenshot>${PROJECT_ROOT}\Whisper Logo Full.png</param.screenshot>
+    <param.guid />
+    <param.installpath.string>\Baylor University\Whisper\</param.installpath.string>
+    <param.installpath.combo>option.installpath.programfiles</param.installpath.combo>
+    <param.logo>${PROJECT_ROOT}\Whisper Logo Square.png</param.logo>
+    <param.install.notes />
+    <param.target.install.notes />
+    <param.intermediate>${PROJECT_ROOT}\Whisper\for_testing</param.intermediate>
+    <param.files.only>${PROJECT_ROOT}\Whisper\for_redistribution_files_only</param.files.only>
+    <param.output>${PROJECT_ROOT}\Whisper\for_redistribution</param.output>
+    <param.logdir>${PROJECT_ROOT}\Whisper</param.logdir>
+    <param.enable.clean.build>false</param.enable.clean.build>
+    <param.user.defined.mcr.options />
+    <param.target.type>subtarget.standalone</param.target.type>
+    <param.support.packages />
+    <param.web.mcr>true</param.web.mcr>
+    <param.package.mcr>false</param.package.mcr>
+    <param.no.mcr>false</param.no.mcr>
+    <param.web.mcr.name>MyAppInstaller_web</param.web.mcr.name>
+    <param.package.mcr.name>MyAppInstaller_mcr</param.package.mcr.name>
+    <param.no.mcr.name>MyAppInstaller_app</param.no.mcr.name>
+    <param.windows.command.prompt>true</param.windows.command.prompt>
+    <param.create.log>false</param.create.log>
+    <param.log.file />
+    <param.native.matlab>false</param.native.matlab>
+    <param.checkbox>false</param.checkbox>
+    <param.example />
+    <param.help.text>Syntax 
+	 Whisper -? 
+	 Whisper app event 
+ Input Arguments 
+	 -?  print help on how to use the application 
+	 app event  input arguments</param.help.text>
+    <unset>
+      <param.email />
+      <param.summary />
+      <param.description />
+      <param.guid />
+      <param.installpath.string />
+      <param.installpath.combo />
+      <param.install.notes />
+      <param.target.install.notes />
+      <param.intermediate />
+      <param.files.only />
+      <param.output />
+      <param.logdir />
+      <param.enable.clean.build />
+      <param.user.defined.mcr.options />
+      <param.target.type />
+      <param.support.packages />
+      <param.web.mcr />
+      <param.package.mcr />
+      <param.no.mcr />
+      <param.web.mcr.name />
+      <param.package.mcr.name />
+      <param.no.mcr.name />
+      <param.windows.command.prompt />
+      <param.create.log />
+      <param.log.file />
+      <param.native.matlab />
+      <param.checkbox />
+      <param.example />
+    </unset>
+    <fileset.main>
+      <file>${PROJECT_ROOT}\Whisper.m</file>
+    </fileset.main>
+    <fileset.resources>
+      <file>${PROJECT_ROOT}\cnc_sounds</file>
+      <file>${PROJECT_ROOT}\GenerateDataset.m</file>
+      <file>${PROJECT_ROOT}\GenerateInternalRepresentation.m</file>
+      <file>${PROJECT_ROOT}\GenerateStimulusMatrix.m</file>
+      <file>${PROJECT_ROOT}\getFreqBins.m</file>
+      <file>${PROJECT_ROOT}\mapCNCNames.m</file>
+      <file>${PROJECT_ROOT}\Patient.m</file>
+      <file>${PROJECT_ROOT}\patientData.m</file>
+      <file>${PROJECT_ROOT}\PlaySingleTone.m</file>
+      <file>${PROJECT_ROOT}\PlaySound.m</file>
+      <file>${PROJECT_ROOT}\SegmentedSmooth.m</file>
+      <file>${PROJECT_ROOT}\Sound.m</file>
+      <file>${PROJECT_ROOT}\syllable_sounds</file>
+      <file>${PROJECT_ROOT}\Test.m</file>
+      <file>${PROJECT_ROOT}\testOptionSelection.m</file>
+      <file>${PROJECT_ROOT}\testReport.m</file>
+      <file>${PROJECT_ROOT}\TestType.m</file>
+      <file>${PROJECT_ROOT}\volume-high.svg</file>
+      <file>${PROJECT_ROOT}\volume-low.svg</file>
+      <file>${PROJECT_ROOT}\volumeCallibration.m</file>
+      <file>${PROJECT_ROOT}\Whisper Logo Full.png</file>
+      <file>${PROJECT_ROOT}\Whisper Logo Gray.png</file>
+      <file>${PROJECT_ROOT}\Whisper Logo Square.png</file>
+      <file>${PROJECT_ROOT}\Whisper.m</file>
+    </fileset.resources>
+    <fileset.package />
+    <fileset.depfun />
+    <build-deliverables>
+      <file location="${PROJECT_ROOT}\Whisper\for_testing" name="readme.txt" optional="true">C:\Users\benja\Documents\Baylor\Research\Whisper\Whisper\for_testing\readme.txt</file>
+      <file location="${PROJECT_ROOT}\Whisper\for_testing" name="splash.png" optional="false">C:\Users\benja\Documents\Baylor\Research\Whisper\Whisper\for_testing\splash.png</file>
+      <file location="${PROJECT_ROOT}\Whisper\for_testing" name="Whisper.exe" optional="false">C:\Users\benja\Documents\Baylor\Research\Whisper\Whisper\for_testing\Whisper.exe</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>C:\Program Files\MATLAB\R2024a</root>
+      <toolboxes />
+    </matlab>
+    <platform>
+      <unix>false</unix>
+      <mac>false</mac>
+      <windows>true</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>10.0</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>win64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>

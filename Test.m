@@ -30,12 +30,11 @@ classdef Test < matlab.apps.AppBase
         endTimestamp                
         duration                    
         patient                     Patient
-        callibratedBaseline         double
         savePath                    string
     end
 
     % Callbacks that handle component events
-    methods (Access = private)
+    methods (Access = public)
 
         % Navigates to the next trial
         function NextTrial(app, event)
@@ -155,7 +154,7 @@ classdef Test < matlab.apps.AppBase
         % Plays the human voiced and computer generated sounds
         function PlaySounds(app, event)
             % Play human voiced sound
-            PlaySound(app.currentSoundObj.humanVoicedSoundTimeDomain, app.currentSoundObj.samplingRate, 6, app.callibratedBaseline);
+            sound(app.currentSoundObj.humanVoicedSoundTimeDomain, app.currentSoundObj.samplingRate);
             % Pause 1.5 seconds
             pause(1.5);
 
@@ -163,11 +162,11 @@ classdef Test < matlab.apps.AppBase
             % Get representation in frequency domain and plot stimuli in
             % frequency domain
             stimFrequencyDomain = imresize(app.currentSoundObj.stimulusMatrix(app.currentTrial, :)', [app.currentSoundObj.numFreqs 1], "nearest");
-            figure(1);
-            plot(abs(stimFrequencyDomain));
-            title('Computer-Generated Stimulus');
-            xlabel('Frequency (Hz)');
-            ylabel('Amplitude');
+            % figure(1);
+            % plot(abs(stimFrequencyDomain));
+            % title('Computer-Generated Stimulus');
+            % xlabel('Frequency (Hz)');
+            % ylabel('Amplitude');
 
             % Convert stimulus into the time domain and plot
             stim = ifft(app.currentSoundObj.stimulusMatrix(app.currentTrial, :));
@@ -184,15 +183,15 @@ classdef Test < matlab.apps.AppBase
             stim4(app.currentSoundObj.signalStop:end) = 0.0001;
 
             % Play sound
-            PlaySound(real(stim4), app.currentSoundObj.samplingRate, 10, app.callibratedBaseline);
+            sound(real(stim4), app.currentSoundObj.samplingRate);
             
             % Plot human voiced sound in frequency domain
-            figure(3);
-            spect = imresize(abs(app.currentSoundObj.humanVoicedSoundFrequencyDomain), [app.currentSoundObj.numFreqs 1], "nearest");
-            plot(spect(1:app.currentSoundObj.numFreqs));
-            title('Human-Voiced Sound');
-            xlabel('Frequency (Hz)');
-            ylabel('Amplitude');
+            % figure(3);
+            % spect = imresize(abs(app.currentSoundObj.humanVoicedSoundFrequencyDomain), [app.currentSoundObj.numFreqs 1], "nearest");
+            % plot(spect(1:app.currentSoundObj.numFreqs));
+            % title('Human-Voiced Sound');
+            % xlabel('Frequency (Hz)');
+            % ylabel('Amplitude');
 
         end
     end
@@ -210,7 +209,6 @@ classdef Test < matlab.apps.AppBase
             obj.testID = randi([0, 2^32], 1, 1);
             obj.startTimestamp = datetime();
             obj.patient = Patient("0");
-            obj.callibratedBaseline = 0;
         end
 
         % Create UIFigure and components
@@ -228,7 +226,7 @@ classdef Test < matlab.apps.AppBase
             app.FButton = uibutton(app.RecognitionPanel, 'state');
             app.FButton.ValueChangedFcn = createCallbackFcn(app, @NextTrial, true);
             app.FButton.Text = 'F';
-            app.FButton.FontSize = 36;
+            app.FButton.FontSize = 48;
             app.FButton.Position = [300 316 90 97];
 
             % Create JButton
@@ -302,7 +300,7 @@ classdef Test < matlab.apps.AppBase
             app.SoundCardSoundCountLabel = uilabel(app.UIFigure);
             app.SoundCardSoundCountLabel.HorizontalAlignment = 'center';
             app.SoundCardSoundCountLabel.FontSize = 14;
-            app.SoundCardSoundCountLabel.Position = [448 620 105 22];
+            app.SoundCardSoundCountLabel.Position = [440 620 115 22];
             app.SoundCardSoundCountLabel.Text = 'Sound ' + string(app.currentSound) + ' of ' + string(app.numSounds);
 
             % Create ContinueButton

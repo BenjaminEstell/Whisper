@@ -51,6 +51,9 @@ classdef testOptionSelection < matlab.apps.AppBase
         System                     Whisper
         savedPathChosen
         selectedTestType
+        cncMap
+        practiceTestCheckBox       matlab.ui.control.CheckBox
+        OtherOptionsPanel          matlab.ui.container.Panel
     end
 
     
@@ -157,13 +160,15 @@ classdef testOptionSelection < matlab.apps.AppBase
                 app.System.test.numSounds = length(app.System.test.sounds);
             else
                 app.System.test.mode = TestType.cnc;
+                app.cncMap = mapCNCNames();
                 % choose numSounds random cnc sounds
                 app.System.test.numSounds = app.wordsEditField.Value;
                 % pick random numbers between 100 and 1049 
-                randomNumberSet = randi([100 1049], 1, app.System.numSounds);
+                randomNumberSet = randperm(499, app.System.test.numSounds);
                 % for each random number, construct a Sound object
                 for ii = 1:size(randomNumberSet, 1)
                     newSound = Sound(string(randomNumberSet(ii)), TestType.cnc, app.System.test.numTrials);
+                    newSound = newSound.setName(lookup(app.cncMap, newSound.name));
                     % store the new Sound in the Test
                     app.System.test.sounds{end+1} = newSound;
                 end
@@ -179,7 +184,7 @@ classdef testOptionSelection < matlab.apps.AppBase
 
         % Opens the dialog box for saving the dataset into a folder
         function BrowseSaveLocation(app, event)
-            f = figure('Renderer', 'painters', 'Position', [-100 -100 0 0]); %create a dummy figure so that uigetfile doesn't minimize our GUI
+            f = figure('Renderer', 'painters', 'Position', [-100 -100 0 0]);
             path = uigetdir();
             delete(f);
             app.System.test.savePath = path;
@@ -236,6 +241,10 @@ classdef testOptionSelection < matlab.apps.AppBase
                     app.SelectNumberofTrialsPanel.Enable = false;
                 end
             end
+        end
+
+        function TogglePracticeTestSelection(app, event)
+            app.System.practiceTest = app.practiceTestCheckBox.Value;
         end
     end
 
@@ -516,6 +525,7 @@ classdef testOptionSelection < matlab.apps.AppBase
             % Create SelectNumberofTrialsPanel
             app.SelectNumberofTrialsPanel = uipanel(app.TestOptionsPanel);
             app.SelectNumberofTrialsPanel.Enable = 'off';
+            app.SelectNumberofTrialsPanel.FontSize = 14;
             app.SelectNumberofTrialsPanel.Title = 'Select Number of Trials';
             app.SelectNumberofTrialsPanel.Position = [715 520 233 110];
 
@@ -571,6 +581,19 @@ classdef testOptionSelection < matlab.apps.AppBase
             app.BrowseButton.FontSize = 14;
             app.BrowseButton.Position = [37 17 119 25];
             app.BrowseButton.Text = 'Browse';
+
+            % Create OtherOptionsPanel
+            app.OtherOptionsPanel = uipanel(app.TestOptionsPanel);
+            app.OtherOptionsPanel.Title = 'Other Options';
+            app.OtherOptionsPanel.FontSize = 14;
+            app.OtherOptionsPanel.Position = [715 418 232 77];
+
+            % Create PracticeTestButton
+            app.practiceTestCheckBox = uicheckbox(app.OtherOptionsPanel);
+            app.practiceTestCheckBox.ValueChangedFcn = createCallbackFcn(app, @TogglePracticeTestSelection, true);
+            app.practiceTestCheckBox.Text = 'Practice Round';
+            app.practiceTestCheckBox.FontSize = 14;
+            app.practiceTestCheckBox.Position = [13 15 117 22];
 
             app.selectedTestType = app.SyllableRecognitionButton;
         end
