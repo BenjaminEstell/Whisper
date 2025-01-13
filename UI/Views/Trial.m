@@ -1,65 +1,78 @@
-% Practice Test class
-% Extends the Test class
-% Used for 5 practice trials with a CNC word before beginning the actual
-% test
-
-classdef PracticeTest < Test
-
-    properties 
-        
+classdef Trial
+    %TRIAL Summary of this class goes here
+    %   Detailed explanation goes here
+    
+    properties
+        UIFigure            matlab.ui.Figure
+        RecognitionPanel     matlab.ui.container.Panel
+        JButton                     matlab.ui.control.StateButton
+        FButton                     matlab.ui.control.StateButton
+        SoundLabel                     matlab.ui.control.Label
+        DifferentLabel              matlab.ui.control.Label
+        SameLabel                   matlab.ui.control.Label
+        HearSoundsButton            matlab.ui.control.Button
+        TestTrialCountLabel            matlab.ui.control.Label
+        TestSoundCountLabel             matlab.ui.control.Label
+        currentSoundName
+        currentSoundNumber
+        numSounds
+        currentTrial
+        numTrials
+        System                  Whisper
     end
-
-    methods (Access = public)
-        % Class constructor
-        function obj = PracticeTest()
-            % Initialize properties to default values
-            obj.numTrials = 5;
-            obj.numSounds = 1;
-            obj.mode = TestType.cnc;
-            randomNum = randperm(499, obj.numSounds);
-            testSound = Sound(string(randomNum), TestType.cnc, obj.numTrials);
-            obj.sounds = [];
-            obj.sounds{end+1} = testSound;
-            obj.testID = randi([0, 2^32], 1, 1);
-            obj.startTimestamp = datetime();
-            obj.patient = Patient("0");
-        end
-    end
-
+    
     methods
-        % Navigates to the next trial
-        function NextTrial(app, event)
-            % If we have finished the last trial, move on to the next sound
-            if app.currentTrial == app.numTrials
-                    app.NavToTest();
-            else
-                % otherwise, move on to the next trial
-                app.currentTrial = app.currentTrial + 1;
-                app.TestTrialCountLabel.Text = 'Trial ' + string(app.currentTrial) + ' of ' + string(app.numTrials);
-                app.FButton.Value = false;
-                app.JButton.Value = false;
-                
-                % Play sounds
-                pause(0.2);
-                app.PlaySounds();
+
+        % Trial Constructor
+        function obj = Trial(currentSoundName, currentSoundNumber, numSounds, numTrials, system)
+            obj.currentSoundName = currentSoundName;
+            obj.currentSoundNumber = currentSoundNumber;
+            obj.currentTrial = 1;
+            obj.numSounds = numSounds;
+            obj.numTrials = numTrials;
+            obj.System = system;
+
+            pause(0.4);
+            app.System.test.PlaySounds();
+        end
+
+        % Keyboard shortcuts
+        function processKeyPress(app, event, KeyData)
+            if KeyData.Key == 'j'
+                app.JButton.Value = true;
+                app.NextTrial();
+            elseif KeyData.Key == 'f'
+                app.FButton.Value = true;
+                app.NextTrial();
+            elseif KeyData.Key == 'space'
+                app.System.test.PlaySounds();
             end
         end
 
-        % Navigates to the real test
-        function NavToTest(app)
-            % Delete test components
-            while ~isempty(app.RecognitionPanel.Children)
-                app.RecognitionPanel.Children(1).delete();
+        function processSoundCardKeyPress(app, event, KeyData)
+            if KeyData.Key == 'return'
+                app.nextSound();
             end
-            bimodalIntegrationTestView = app.System.test;
-            bimodalIntegrationTestView.createSoundCardComponents(app.UIFigure, app.System);
         end
 
-        function PlaySounds(app, event)
-            PlaySounds@Test(app);
+        function nextTrial(app, ~)
+            % Plays the next sounds
+            app.System.test.PlaySounds();
+            % Saves stuff
+            app.System.test.saveUserResponse(app.FButton.Value, app.JButton.Value);
+            % Updates the model
+            app.System.test.nextTrial();
+            % Updates the UI
+
+            
+        end
+
+        function playSounds(app, ~)
+            app.System.test.PlaySounds();
         end
 
 
+        % Create UIFigure and components
         function createTestComponents(app, UIFigure)
             app.UIFigure = UIFigure;
             set(app.UIFigure, 'KeyPressFcn', @app.processKeyPress);
@@ -86,7 +99,7 @@ classdef PracticeTest < Test
 
             % Create HearSoundsButton
             app.HearSoundsButton = uibutton(app.RecognitionPanel, 'push');
-            app.HearSoundsButton.ButtonPushedFcn = createCallbackFcn(app, @PlaySounds, true);
+            app.HearSoundsButton.ButtonPushedFcn = createCallbackFcn(app, @playSounds, true);
             app.HearSoundsButton.FontSize = 18;
             app.HearSoundsButton.Position = [260 149 450 50];
             app.HearSoundsButton.Text = 'Hear Sounds';
@@ -113,13 +126,13 @@ classdef PracticeTest < Test
             app.SoundLabel.FontSize = 48;
             app.SoundLabel.FontWeight = 'bold';
             app.SoundLabel.Position = [388 472 193 63];
-            app.SoundLabel.Text = '/' + app.currentSoundObj.name + '/';
+            app.SoundLabel.Text = '/' + app.currentSoundName.name + '/';
 
             % Create TestSoundCountLabel
             app.TestSoundCountLabel = uilabel(app.RecognitionPanel);
             app.TestSoundCountLabel.FontSize = 14;
             app.TestSoundCountLabel.Position = [425 647 115 22];
-            app.TestSoundCountLabel.Text = 'Practice Sound';
+            app.TestSoundCountLabel.Text = 'Sound ' + string(app.currentSoundNumber) + ' of ' + string(app.numSounds);
 
             % Create TestTrialCountLabel
             app.TestTrialCountLabel = uilabel(app.RecognitionPanel);
@@ -127,6 +140,6 @@ classdef PracticeTest < Test
             app.TestTrialCountLabel.Position = [865 648 94 22];
             app.TestTrialCountLabel.Text = 'Trial ' + string(app.currentTrial) + ' of ' + string(app.numTrials);
         end
-
     end
 end
+

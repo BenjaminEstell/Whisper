@@ -1,4 +1,4 @@
-classdef patientData < matlab.apps.AppBase
+classdef PatientData < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
@@ -25,7 +25,6 @@ classdef patientData < matlab.apps.AppBase
 
     % Callbacks that handle component events
     methods (Access = private)
-
         % Value changed function: LeftEarHearingDeviceDropDown
         function LeftEarSelection(app, event)
             value = app.LeftEarHearingDeviceDropDown.Value;
@@ -47,27 +46,19 @@ classdef patientData < matlab.apps.AppBase
         end
 
         % Button pushed function: BeginTestButton
-        function BeginTest(app, event)
+        function BeginTest(app, ~)
             % Save selections
-            app.System.test.patient.ID = app.PatientIDEditField.Value;
-            app.System.test.patient.DOB = app.DateofBirthDatePicker.Value;
-            app.System.test.patient.sex = app.SexDropDown.Value;
-            app.System.test.patient.leftEarDevice = app.LeftEarHearingDeviceDropDown.Value;
-            app.System.test.patient.leftEarDeviceYears = app.YearssinceleftearhearingdeviceinsertionEditField.Value;
-            app.System.test.patient.rightEarDevice = app.RightEarHearingDeviceDropDown.Value;
-            app.System.test.patient.rightEarDeviceYears = app.YearssincerightearhearingdeviceinsertionEditField.Value;
-
+            ConfigurePatientData(app);
             % clear the current ui
             for ii = 1:length(app.UIFigure.Children)
                 app.UIFigure.Children(ii).Visible = false;
             end
             % Build test UI
             if (app.System.practiceTest)
-                practice = PracticeTest();
-                practice.createSoundCardComponents(app.UIFigure, app.System);
+                practice = PracticeTest(app.System);
+                practice.createTestComponents(app.UIFigure);
             else
-                bimodalIntegrationTestView = app.System.test;
-                bimodalIntegrationTestView.createSoundCardComponents(app.UIFigure, app.System);
+                app.System.test.runTest(app.UIFigure, app.System);
             end
         end
     end

@@ -22,6 +22,7 @@
         % save the stimulus matrix as txt
         % save the response vector as txt
         % save the internal representation as txt
+        % save the original sound
         % Remember chart labels
             % x axis
             % y axis
@@ -46,8 +47,6 @@ function GenerateDataset(test)
     else
         folderPath = fullfile(savePath, folderName);
         
-        % use saveas to save the charts as png
-    
         % Save Patient Data
         patientTablePath = fullfile(folderPath, "PatientData.txt");
         ID = test.patient.ID;
@@ -86,6 +85,8 @@ function GenerateDataset(test)
             writematrix(sound.responseVector, fullfile(soundPath, "ResponseVector.txt"));
             % Save internal representation as txt
             writematrix(sound.internalRepresentation, fullfile(soundPath, "InternalRepresentation.txt"));
+            % Save original sound as txt
+            writematrix(sound.humanVoicedSoundTImeDomain, fullfile(soundPath, "OriginalSound.txt"));
             
             % Save HVS as png
             x = 1:sound.numFreqs;

@@ -1,4 +1,4 @@
-classdef testOptionSelection < matlab.apps.AppBase
+classdef TestOptionSelection < matlab.apps.AppBase
     % Properties that correspond to app components
     properties (Access = public)
         UIFigure                   matlab.ui.Figure
@@ -49,22 +49,19 @@ classdef testOptionSelection < matlab.apps.AppBase
         WordRecognitionButton      matlab.ui.control.RadioButton
         SyllableRecognitionButton  matlab.ui.control.RadioButton
         System                     Whisper
-        savedPathChosen
-        selectedTestType
-        cncMap
         practiceTestCheckBox       matlab.ui.control.CheckBox
         OtherOptionsPanel          matlab.ui.container.Panel
     end
 
-    
     properties (Access = private)
         numCheckedSyllables = 0;    % Gives the number of syllable checkboxes that are checked
+        savedPathChosen = false;    % Boolean
+        selectedTestType            % UI Element
     end
     
 
     % Callbacks that handle component events
     methods (Access = private)
-
         % Selection changed function: SelectTestTypeButtonGroup
         function TestTypeSelection(app, event)
             app.selectedTestType = app.SelectTestTypeButtonGroup.SelectedObject;
@@ -76,34 +73,37 @@ classdef testOptionSelection < matlab.apps.AppBase
         function ToggleAllSyllables(app, event)
             value = app.allCheckBox.Value;
             % set value of all syllable checkboxes to value
-            app.hoedCheckBox.Value = value;
-            app.hadCheckBox.Value = value;
-            app.headCheckBox.Value = value;
-            app.zaCheckBox.Value = value;
-            app.paCheckBox.Value = value;
-            app.faCheckBox.Value = value;
-            app.naCheckBox.Value = value;
-            app.gaCheckBox.Value = value;
-            app.hayedCheckBox.Value = value;
-            app.hidCheckBox.Value = value;
-            app.heardCheckBox.Value = value;
-            app.hodCheckBox.Value = value;
-            app.xtaCheckBox.Value = value;
-            app.xsaCheckBox.Value = value;
-            app.saCheckBox.Value = value;
-            app.kaCheckBox.Value = value;
-            app.hoodCheckBox.Value = value;
-            app.heedCheckBox.Value = value;
-            app.hawedCheckBox.Value = value;
-            app.hudCheckBox.Value = value;
-            app.hooedCheckBox.Value = value;
-            app.xzaCheckBox.Value = value;
-            app.vaCheckBox.Value = value;
-            app.xdaCheckBox.Value = value;
-            app.taCheckBox.Value = value;
-            app.maCheckBox.Value = value;
-            app.daCheckBox.Value = value;
-            app.baCheckBox.Value = value;
+            for ii = 0:length(app.SelectSyllablesPanel.Children)
+                app.SelectSyllablesPanel.Children(ii).Value = value;
+            end
+            % app.hoedCheckBox.Value = value;
+            % app.hadCheckBox.Value = value;
+            % app.headCheckBox.Value = value;
+            % app.zaCheckBox.Value = value;
+            % app.paCheckBox.Value = value;
+            % app.faCheckBox.Value = value;
+            % app.naCheckBox.Value = value;
+            % app.gaCheckBox.Value = value;
+            % app.hayedCheckBox.Value = value;
+            % app.hidCheckBox.Value = value;
+            % app.heardCheckBox.Value = value;
+            % app.hodCheckBox.Value = value;
+            % app.xtaCheckBox.Value = value;
+            % app.xsaCheckBox.Value = value;
+            % app.saCheckBox.Value = value;
+            % app.kaCheckBox.Value = value;
+            % app.hoodCheckBox.Value = value;
+            % app.heedCheckBox.Value = value;
+            % app.hawedCheckBox.Value = value;
+            % app.hudCheckBox.Value = value;
+            % app.hooedCheckBox.Value = value;
+            % app.xzaCheckBox.Value = value;
+            % app.vaCheckBox.Value = value;
+            % app.xdaCheckBox.Value = value;
+            % app.taCheckBox.Value = value;
+            % app.maCheckBox.Value = value;
+            % app.daCheckBox.Value = value;
+            % app.baCheckBox.Value = value;
 
             if app.allCheckBox.Value
                 app.numCheckedSyllables = 26;
@@ -140,47 +140,6 @@ classdef testOptionSelection < matlab.apps.AppBase
             app.System.test.numTrials = app.trialsEditField.Value;
         end
 
-        % Button pushed function: NextPatientDataButton
-        function EnterPatientData(app, event)
-            % record mode and sounds chosen
-            if app.SelectTestTypeButtonGroup.SelectedObject == app.SyllableRecognitionButton
-                app.System.test.mode = TestType.syllable;
-                % collect all syllables that will be used in the Test
-                for ii = 1:length(app.SelectSyllablesPanel.Children)
-                    if app.SelectSyllablesPanel.Children(ii).Value == true && ~strcmp(app.SelectSyllablesPanel.Children(ii).Text,"all")
-                        % Gets the syllable name from the element on the page
-                        temp = split(app.SelectSyllablesPanel.Children(ii).Text, '/');
-                        temp2 = split(temp(2), '/');
-                        % construct a Sound object for the sound
-                        newSound = Sound(string(temp2(1)), TestType.syllable, app.System.test.numTrials);
-                        % store the new Sound in the Test
-                        app.System.test.sounds{end+1} = newSound;
-                    end
-                end
-                app.System.test.numSounds = length(app.System.test.sounds);
-            else
-                app.System.test.mode = TestType.cnc;
-                app.cncMap = mapCNCNames();
-                % choose numSounds random cnc sounds
-                app.System.test.numSounds = app.wordsEditField.Value;
-                % pick random numbers between 100 and 1049 
-                randomNumberSet = randperm(499, app.System.test.numSounds);
-                % for each random number, construct a Sound object
-                for ii = 1:size(randomNumberSet, 1)
-                    newSound = Sound(string(randomNumberSet(ii)), TestType.cnc, app.System.test.numTrials);
-                    newSound = newSound.setName(lookup(app.cncMap, newSound.name));
-                    % store the new Sound in the Test
-                    app.System.test.sounds{end+1} = newSound;
-                end
-            end
-            % clear the current ui
-            for ii = 1:length(app.UIFigure.Children)
-                app.UIFigure.Children(ii).Visible = false;
-            end
-            % Build patient data UI
-            patientDataView = patientData();
-            patientDataView.createComponents(app.UIFigure, app.System);
-        end
 
         % Opens the dialog box for saving the dataset into a folder
         function BrowseSaveLocation(app, event)
@@ -243,8 +202,21 @@ classdef testOptionSelection < matlab.apps.AppBase
             end
         end
 
+        % Triggered by User Event
         function TogglePracticeTestSelection(app, event)
             app.System.practiceTest = app.practiceTestCheckBox.Value;
+        end
+
+        % Navigates to the next screen
+        function ToPatientInformation(app, event)
+            ConfigureTest(app);
+            % clear the current ui
+            for ii = 1:length(app.UIFigure.Children)
+                app.UIFigure.Children(ii).Visible = false;
+            end
+            % Build patient data UI
+            patientDataView = PatientData();
+            patientDataView.createComponents(app.UIFigure, app.System);
         end
     end
 
@@ -254,8 +226,6 @@ classdef testOptionSelection < matlab.apps.AppBase
         function createComponents(app, UIFigure, WhisperIn)
             app.System = WhisperIn;
             app.UIFigure = UIFigure;
-
-            app.savedPathChosen = false;
 
             % Create TestOptionsPanel
             app.TestOptionsPanel = uipanel(app.UIFigure);
@@ -555,7 +525,7 @@ classdef testOptionSelection < matlab.apps.AppBase
 
             % Create NextPatientDataButton
             app.NextPatientDataButton = uibutton(app.TestOptionsPanel, 'push');
-            app.NextPatientDataButton.ButtonPushedFcn = createCallbackFcn(app, @EnterPatientData, true);
+            app.NextPatientDataButton.ButtonPushedFcn = createCallbackFcn(app, @ToPatientInformation, true);
             app.NextPatientDataButton.FontSize = 18;
             app.NextPatientDataButton.Enable = 'off';
             app.NextPatientDataButton.Position = [742 23 206 45];
@@ -597,6 +567,5 @@ classdef testOptionSelection < matlab.apps.AppBase
 
             app.selectedTestType = app.SyllableRecognitionButton;
         end
-        
     end
 end

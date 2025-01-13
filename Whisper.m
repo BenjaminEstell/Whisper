@@ -14,19 +14,28 @@ classdef Whisper < matlab.apps.AppBase
     methods (Access = private)
 
         % Button pushed function: BeginNewTestButton
-        function SelectTestType(app, event)
+        % Creates and configures the Test
+        function CreateTest(app, ~)
             % Create a Test object
             testObj = Test();
             app.test = testObj;
-            % Navigate to test option selection
+            % Configure the Test
             NavToTestOptions(app);
         end
-    end
 
-    % Component initialization
-    methods (Access = public)
+        % Clears the UI and loads the Test Option Selection View
+        function NavToTestOptions(app)
+            % Clear contents of the UI
+            for ii = 1:length(app.UIFigure.Children)
+                app.UIFigure.Children(ii).Visible = false;
+            end
 
-        % Create UIFigure and components
+            % Build Test Options View
+            testOptionSelectionPage = TestOptionSelection();
+            testOptionSelectionPage.createComponents(app.UIFigure, app);
+        end
+
+        % Creates the Whisper Landing Page View
         function createComponents(app, UIFigure)
             % Get the file path for locating images
             pathToMLAPP = fileparts(mfilename('fullpath'));
@@ -34,7 +43,7 @@ classdef Whisper < matlab.apps.AppBase
 
             % Create BeginNewTestButton
             app.BeginNewTestButton = uibutton(app.UIFigure, 'push');
-            app.BeginNewTestButton.ButtonPushedFcn = createCallbackFcn(app, @SelectTestType, true);
+            app.BeginNewTestButton.ButtonPushedFcn = createCallbackFcn(app, @CreateTest, true);
             app.BeginNewTestButton.FontSize = 18;
             app.BeginNewTestButton.Position = [376 199 250 45];
             app.BeginNewTestButton.Text = 'Begin New Test';
@@ -42,27 +51,16 @@ classdef Whisper < matlab.apps.AppBase
             % Create Image
             app.Image = uiimage(app.UIFigure);
             app.Image.Position = [191 243 619 312];
-            app.Image.ImageSource = fullfile(pathToMLAPP, 'Whisper Logo Gray.png');
+            app.Image.ImageSource = fullfile(pathToMLAPP, '/UI/Images/Whisper Logo Gray.png');
 
             % Create versionLabel
             app.versionLabel = uilabel(app.UIFigure);
             app.versionLabel.FontSize = 14;
             app.versionLabel.Position = [477 67 47 25];
-            app.versionLabel.Text = 'v 1.0.0';
+            app.versionLabel.Text = 'v 1.0';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
-        end
-
-        function NavToTestOptions(app)
-            % Clear contents of the UI
-            for ii = 1:length(app.UIFigure.Children)
-                app.UIFigure.Children(ii).Visible = false;
-            end
-
-            % Build test options UI
-            testOptionSelectionPage = testOptionSelection();
-            testOptionSelectionPage.createComponents(app.UIFigure, app);
         end
     end
 

@@ -1,4 +1,4 @@
-classdef testReport < matlab.apps.AppBase
+classdef TestReport < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
