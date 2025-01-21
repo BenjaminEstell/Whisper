@@ -1,4 +1,4 @@
-classdef Trial
+classdef Trial < matlab.apps.AppBase
     %TRIAL Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -24,20 +24,23 @@ classdef Trial
     methods
 
         % Trial Constructor
-        function obj = Trial(currentSoundName, currentSoundNumber, numSounds, numTrials, system)
+        function obj = Trial(currentSoundName, currentSoundNumber, numSounds, numTrials, system, UIFigure)
             obj.currentSoundName = currentSoundName;
             obj.currentSoundNumber = currentSoundNumber;
             obj.currentTrial = 1;
             obj.numSounds = numSounds;
             obj.numTrials = numTrials;
             obj.System = system;
-
+            obj.UIFigure = UIFigure;
+            % Generate Stimulus
+            system.test.currentSound.stimulusMatrix = GenerateStimulusMatrix(system.test.currentSound);
+            obj.createTestComponents();
             pause(0.4);
-            app.System.test.PlaySounds();
+            obj.System.test.PlaySounds(obj.currentTrial);
         end
 
         % Keyboard shortcuts
-        function processKeyPress(app, event, KeyData)
+        function processKeyPress(app, ~, KeyData)
             if KeyData.Key == 'j'
                 app.JButton.Value = true;
                 app.NextTrial();
@@ -45,36 +48,32 @@ classdef Trial
                 app.FButton.Value = true;
                 app.NextTrial();
             elseif KeyData.Key == 'space'
-                app.System.test.PlaySounds();
+                app.System.test.PlaySounds(app.currentTrial);
             end
         end
 
-        function processSoundCardKeyPress(app, event, KeyData)
-            if KeyData.Key == 'return'
-                app.nextSound();
-            end
-        end
-
-        function nextTrial(app, ~)
-            % Plays the next sounds
-            app.System.test.PlaySounds();
-            % Saves stuff
-            app.System.test.saveUserResponse(app.FButton.Value, app.JButton.Value);
+        function NextTrial(app, ~)
             % Updates the model
-            app.System.test.nextTrial();
-            % Updates the UI
-
-            
+            if app.System.test.nextTrial(app.FButton.Value, app.JButton.Value)
+                % Updates the UI from the updated model
+                app.currentTrial = app.currentTrial + 1;
+                app.TestTrialCountLabel.Text = 'Trial ' + string(app.currentTrial) + ' of ' + string(app.numTrials);
+                app.FButton.Value = false;
+                app.JButton.Value = false;
+                
+                % Play sounds
+                pause(0.2);
+                app.System.test.PlaySounds(app.currentTrial);
+            end
         end
 
         function playSounds(app, ~)
-            app.System.test.PlaySounds();
+            app.System.test.PlaySounds(app.currentTrial);
         end
 
 
         % Create UIFigure and components
-        function createTestComponents(app, UIFigure)
-            app.UIFigure = UIFigure;
+        function createTestComponents(app)
             set(app.UIFigure, 'KeyPressFcn', @app.processKeyPress);
 
             % Create RecognitionPanel
@@ -85,7 +84,7 @@ classdef Trial
 
             % Create FButton
             app.FButton = uibutton(app.RecognitionPanel, 'state');
-            app.FButton.ValueChangedFcn = createCallbackFcn(app, @NextTrial, true);
+            app.FButton.ValueChangedFcn = createCallbackFcn(app, @NextTrial, false);
             app.FButton.Text = 'F';
             app.FButton.FontSize = 48;
             app.FButton.Position = [300 316 90 97];
@@ -126,7 +125,7 @@ classdef Trial
             app.SoundLabel.FontSize = 48;
             app.SoundLabel.FontWeight = 'bold';
             app.SoundLabel.Position = [388 472 193 63];
-            app.SoundLabel.Text = '/' + app.currentSoundName.name + '/';
+            app.SoundLabel.Text = '/' + app.currentSoundName + '/';
 
             % Create TestSoundCountLabel
             app.TestSoundCountLabel = uilabel(app.RecognitionPanel);

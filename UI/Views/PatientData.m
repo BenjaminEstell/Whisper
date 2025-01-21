@@ -48,7 +48,7 @@ classdef PatientData < matlab.apps.AppBase
         % Button pushed function: BeginTestButton
         function BeginTest(app, ~)
             % Save selections
-            ConfigurePatientData(app);
+            app.System.test.patient = ConfigurePatientData(app);
             % clear the current ui
             for ii = 1:length(app.UIFigure.Children)
                 app.UIFigure.Children(ii).Visible = false;
@@ -57,6 +57,7 @@ classdef PatientData < matlab.apps.AppBase
             if (app.System.practiceTest)
                 practice = PracticeTest(app.System);
                 practice.createTestComponents(app.UIFigure);
+                practice.PlaySounds(1);
             else
                 app.System.test.runTest(app.UIFigure, app.System);
             end

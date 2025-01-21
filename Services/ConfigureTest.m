@@ -1,6 +1,6 @@
  % Called when the User is completed configuring the test
  % Updates the Test with the selected user options
- function ConfigureTest(app)
+ function test = ConfigureTest(app)
     % record mode and sounds chosen
     if app.SelectTestTypeButtonGroup.SelectedObject == app.SyllableRecognitionButton
         app.System.test.mode = TestType.syllable;
@@ -32,4 +32,5 @@
             app.System.test.sounds{end+1} = newSound;
         end
     end
+    test = app.System.test;
 end

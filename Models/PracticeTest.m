@@ -20,29 +20,32 @@ classdef PracticeTest < Test
             testSound = Sound(string(randomNum), TestType.cnc, obj.numTrials);
             obj.sounds = [];
             obj.sounds{end+1} = testSound;
+            obj.currentTrialNumber = 1;
             obj.testID = randi([0, 2^32], 1, 1);
             obj.startTimestamp = datetime();
             obj.patient = Patient("0");
             obj.System = WhisperIn;
+            obj.currentSound = obj.sounds{1};
+            obj.currentSound.stimulusMatrix = GenerateStimulusMatrix(obj.currentSound);
         end
     end
 
     methods
         % Navigates to the next trial
-        function NextTrial(app, event)
+        function NextTrial(app, ~)
             % If we have finished the last trial, move on to the next sound
-            if app.currentTrial == app.numTrials
-                    app.NavToTest();
+            if app.currentTrialNumber == app.numTrials
+                app.NavToTest();
             else
                 % otherwise, move on to the next trial
-                app.currentTrial = app.currentTrial + 1;
-                app.TestTrialCountLabel.Text = 'Trial ' + string(app.currentTrial) + ' of ' + string(app.numTrials);
+                app.currentTrialNumber = app.currentTrialNumber + 1;
+                app.TestTrialCountLabel.Text = 'Trial ' + string(app.currentTrialNumber) + ' of ' + string(app.numTrials);
                 app.FButton.Value = false;
                 app.JButton.Value = false;
                 
                 % Play sounds
-                pause(0.2);
-                app.PlaySounds();
+                pause(0.1);
+                app.PlaySounds(app.currentTrialNumber);
             end
         end
 
@@ -52,12 +55,11 @@ classdef PracticeTest < Test
             while ~isempty(app.RecognitionPanel.Children)
                 app.RecognitionPanel.Children(1).delete();
             end
-            bimodalIntegrationTestView = app.System.test;
-            bimodalIntegrationTestView.createSoundCardComponents(app.UIFigure, app.System);
+            app.System.test.runTest(app.UIFigure, app.System);
         end
 
         function PlaySounds(app, ~)
-            PlaySounds@Test(app);
+            PlaySounds@Test(app, app.currentTrialNumber);
         end
 
 
@@ -114,7 +116,7 @@ classdef PracticeTest < Test
             app.SoundLabel.FontSize = 48;
             app.SoundLabel.FontWeight = 'bold';
             app.SoundLabel.Position = [388 472 193 63];
-            app.SoundLabel.Text = '/' + app.currentSoundObj.name + '/';
+            app.SoundLabel.Text = '/' + app.currentSound.name + '/';
 
             % Create TestSoundCountLabel
             app.TestSoundCountLabel = uilabel(app.RecognitionPanel);
@@ -126,7 +128,7 @@ classdef PracticeTest < Test
             app.TestTrialCountLabel = uilabel(app.RecognitionPanel);
             app.TestTrialCountLabel.FontSize = 14;
             app.TestTrialCountLabel.Position = [865 648 94 22];
-            app.TestTrialCountLabel.Text = 'Trial ' + string(app.currentTrial) + ' of ' + string(app.numTrials);
+            app.TestTrialCountLabel.Text = 'Trial ' + string(app.currentTrialNumber) + ' of ' + string(app.numTrials);
         end
 
     end

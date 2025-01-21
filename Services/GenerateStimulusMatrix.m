@@ -40,3 +40,27 @@ function stimulusMatrix = GenerateStimulusMatrix(sound)
     %     stimulusMatrix(:, ii) = X*psi(:);
     % end
 end
+
+
+% Generate one stimulus
+% Refactor to generate one stimulus vector
+function stimulus = GenerateStimulus(sound)   
+    stimulus = -100 * ones(1, sound.numSamples);
+    binnum = getFreqBins(sound.samplingRate, sound.numSamples, sound.numFreqs, 0, sound.numSamples);
+    formantFreqs = sound.formantFrequencies;
+    binWidth = 12;
+    stimulus = sound.humanVoicedSoundFrequencyDomain;
+
+    for ii = 1:length(formantFreqs)
+        randBin = floor(rand() * min(sound.numFreqs-(binWidth*2 + 1), 3500))+binWidth+1;
+        % swap the amplitude of the formant frequency, plus the binWidth frequencies on either side with a random
+        % collection of frequency binWidth*2 + 1 frequencies
+        randBinFreqs = randBin-binWidth:randBin+binWidth;
+        peakFreqs= formantFreqs(ii)-binWidth:formantFreqs(ii)+binWidth;
+        for kk = 1:binWidth*2 + 1
+            temp = stimulus(binnum==randBinFreqs(kk));
+            stimulus(binnum==randBinFreqs(kk)) = stimulus(binnum==peakFreqs(kk));
+            stimulus(binnum==peakFreqs(kk)) = temp;
+        end
+    end
+end

@@ -66,7 +66,7 @@ classdef TestReport < matlab.apps.AppBase
 
         function PlayInternalRepresentation(app, event)
             % Play sound
-            PlaySound(real(app.currentSound.internalRepresentationTimeDomain), app.currentSound.samplingRate, 6, app.System.test.callibratedBaseline);
+            sound(real(app.currentSound.internalRepresentationTimeDomain), app.currentSound.samplingRate);
         end
 
         function listOut = ListConversion(app, listIn)

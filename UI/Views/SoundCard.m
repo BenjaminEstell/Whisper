@@ -8,39 +8,62 @@ classdef SoundCard < matlab.apps.AppBase
         Label_2                     matlab.ui.control.Label
         Label                       matlab.ui.control.Label
         System                      Whisper
+        t                           Trial
     end
     
     methods
 
-        function obj = SoundCard(UIFigure)
-            obj.createComponents(UIFigure);
+        function obj = SoundCard(UIFigure, WhisperIn)
+            obj.System = WhisperIn;
+            obj.UIFigure = UIFigure;
+            obj.createComponents();
         end
 
         % Button pushed function: ContinueButton
         % User has clicked "Begin
         function BeginTrials(app, ~)
             % Create the trial
-            t  = Trial(app.currentSound.name, app.currentSoundNumber, app.numSounds, app.numTrials, app.System);
-            t.createTestComponents(app.UIFigure);
+            app.t  = Trial(app.System.test.currentSound.name, app.System.test.currentSoundNumber, app.System.test.numSounds, app.System.test.numTrials, app.System, app.UIFigure);
+        end
+
+        % Updates the Sound Card with the next sound and deletes the
+        % previous Trial's UI
+        function nextSound(app)
+            app.SoundCardSoundLabel.Text = '/' + app.System.test.currentSound.name + '/';
+            app.SoundCardSoundCountLabel.Text = 'Sound ' + string(app.System.test.currentSoundNumber) + ' of ' + string(app.System.test.numSounds);
+
+            % Delete Trial
+            while ~isempty(app.t.RecognitionPanel.Children)
+                app.t.RecognitionPanel.Children(1).delete();
+            end
+            app.t.RecognitionPanel.delete();
+            app.t.delete();
+
+            
+        end
+
+        function processSoundCardKeyPress(app, KeyData)
+            if KeyData.Key == 'return'
+                app.nextSound();
+            end
         end
         
-        function createComponents(app, UIFigure)
-            app.UIFigure = UIFigure;
-
+        function createComponents(app)
+            set(app.UIFigure, 'KeyPressFcn', @app.processSoundCardKeyPress);
             % Create SoundCardSoundLabel
             app.SoundCardSoundLabel = uilabel(app.UIFigure);
             app.SoundCardSoundLabel.HorizontalAlignment = 'center';
             app.SoundCardSoundLabel.FontSize = 48;
             app.SoundCardSoundLabel.FontWeight = 'bold';
             app.SoundCardSoundLabel.Position = [416 169 193 63];
-            app.SoundCardSoundLabel.Text = '/' + app.System.test.currentSoundObj.name + '/';
+            app.SoundCardSoundLabel.Text = '/' + app.System.test.currentSound.name + '/';
 
             % Create SoundCardSoundCountLabel
             app.SoundCardSoundCountLabel = uilabel(app.UIFigure);
             app.SoundCardSoundCountLabel.HorizontalAlignment = 'center';
             app.SoundCardSoundCountLabel.FontSize = 14;
             app.SoundCardSoundCountLabel.Position = [440 620 115 22];
-            app.SoundCardSoundCountLabel.Text = 'Sound ' + string(app.System.test.currentSound) + ' of ' + string(app.System.test.numSounds);
+            app.SoundCardSoundCountLabel.Text = 'Sound ' + string(app.System.test.currentSoundNumber) + ' of ' + string(app.System.test.numSounds);
 
             % Create ContinueButton
             app.ContinueButton = uibutton(app.UIFigure, 'push');

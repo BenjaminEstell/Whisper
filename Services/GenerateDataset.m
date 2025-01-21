@@ -86,7 +86,7 @@ function GenerateDataset(test)
             % Save internal representation as txt
             writematrix(sound.internalRepresentation, fullfile(soundPath, "InternalRepresentation.txt"));
             % Save original sound as txt
-            writematrix(sound.humanVoicedSoundTImeDomain, fullfile(soundPath, "OriginalSound.txt"));
+            writematrix(sound.humanVoicedSoundTimeDomain, fullfile(soundPath, "OriginalSound.txt"));
             
             % Save HVS as png
             x = 1:sound.numFreqs;

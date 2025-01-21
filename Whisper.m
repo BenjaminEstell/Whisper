@@ -34,6 +34,27 @@ classdef Whisper < matlab.apps.AppBase
             testOptionSelectionPage = TestOptionSelection();
             testOptionSelectionPage.createComponents(app.UIFigure, app);
         end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = Whisper()
+
+            % Create UIFigure and components
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.Position = [450 150 1000 700];
+            app.UIFigure.Name = 'MATLAB App';
+            createComponents(app, app.UIFigure);
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            if nargout == 0
+                clear app
+            end
+        end
 
         % Creates the Whisper Landing Page View
         function createComponents(app, UIFigure)
@@ -61,27 +82,6 @@ classdef Whisper < matlab.apps.AppBase
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
-        end
-    end
-
-    % App creation and deletion
-    methods (Access = public)
-
-        % Construct app
-        function app = Whisper()
-
-            % Create UIFigure and components
-            app.UIFigure = uifigure('Visible', 'off');
-            app.UIFigure.Position = [450 150 1000 700];
-            app.UIFigure.Name = 'MATLAB App';
-            createComponents(app, app.UIFigure);
-
-            % Register the app with App Designer
-            registerApp(app, app.UIFigure)
-
-            if nargout == 0
-                clear app
-            end
         end
 
         % Code that executes before app deletion

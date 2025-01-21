@@ -76,34 +76,6 @@ classdef TestOptionSelection < matlab.apps.AppBase
             for ii = 0:length(app.SelectSyllablesPanel.Children)
                 app.SelectSyllablesPanel.Children(ii).Value = value;
             end
-            % app.hoedCheckBox.Value = value;
-            % app.hadCheckBox.Value = value;
-            % app.headCheckBox.Value = value;
-            % app.zaCheckBox.Value = value;
-            % app.paCheckBox.Value = value;
-            % app.faCheckBox.Value = value;
-            % app.naCheckBox.Value = value;
-            % app.gaCheckBox.Value = value;
-            % app.hayedCheckBox.Value = value;
-            % app.hidCheckBox.Value = value;
-            % app.heardCheckBox.Value = value;
-            % app.hodCheckBox.Value = value;
-            % app.xtaCheckBox.Value = value;
-            % app.xsaCheckBox.Value = value;
-            % app.saCheckBox.Value = value;
-            % app.kaCheckBox.Value = value;
-            % app.hoodCheckBox.Value = value;
-            % app.heedCheckBox.Value = value;
-            % app.hawedCheckBox.Value = value;
-            % app.hudCheckBox.Value = value;
-            % app.hooedCheckBox.Value = value;
-            % app.xzaCheckBox.Value = value;
-            % app.vaCheckBox.Value = value;
-            % app.xdaCheckBox.Value = value;
-            % app.taCheckBox.Value = value;
-            % app.maCheckBox.Value = value;
-            % app.daCheckBox.Value = value;
-            % app.baCheckBox.Value = value;
 
             if app.allCheckBox.Value
                 app.numCheckedSyllables = 26;
@@ -209,7 +181,7 @@ classdef TestOptionSelection < matlab.apps.AppBase
 
         % Navigates to the next screen
         function ToPatientInformation(app, event)
-            ConfigureTest(app);
+            app.System.test = ConfigureTest(app);
             % clear the current ui
             for ii = 1:length(app.UIFigure.Children)
                 app.UIFigure.Children(ii).Visible = false;
