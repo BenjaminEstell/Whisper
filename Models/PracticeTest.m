@@ -3,39 +3,51 @@
 % Used for 5 practice trials with a CNC word before beginning the actual
 % test
 
-classdef PracticeTest < Test
+classdef PracticeTest < Test & matlab.apps.AppBase
 
     properties 
-        
+        RecognitionPanel            matlab.ui.container.Panel
+        TestTrialCountLabel         matlab.ui.control.Label
+        TestSoundCountLabel         matlab.ui.control.Label
+        SoundLabel                  matlab.ui.control.Label
+        DifferentLabel              matlab.ui.control.Label
+        SameLabel                   matlab.ui.control.Label
+        HearSoundsButton            matlab.ui.control.Button
+        JButton                     matlab.ui.control.StateButton
+        FButton                     matlab.ui.control.StateButton               
     end
 
     methods (Access = public)
         % Class constructor
-        function obj = PracticeTest(WhisperIn)
+        function obj = PracticeTest(WhisperIn, UIFigure)
+            % Construct superclass, test
+            numTrials = 5;
+            numSounds = 1;
+            obj@Test(WhisperIn, UIFigure, numTrials, numSounds, TestType.cnc);
             % Initialize properties to default values
-            obj.numTrials = 5;
-            obj.numSounds = 1;
-            obj.mode = TestType.cnc;
             randomNum = randperm(499, obj.numSounds);
             testSound = Sound(string(randomNum), TestType.cnc, obj.numTrials);
-            obj.sounds = [];
             obj.sounds{end+1} = testSound;
-            obj.currentTrialNumber = 1;
-            obj.testID = randi([0, 2^32], 1, 1);
-            obj.startTimestamp = datetime();
-            obj.patient = Patient("0");
-            obj.System = WhisperIn;
             obj.currentSound = obj.sounds{1};
-            obj.currentSound.stimulusMatrix = GenerateStimulusMatrix(obj.currentSound);
-        end
-    end
+            obj.currentSound = obj.currentSound.generateStimulusMatrix();
 
-    methods
+            obj.createTestComponents();
+        end
+
+        % Plays the sounds for the trial. Passes the call to the Test
+        % superclass
+        % Returns: Nothing
+        function playSounds(app, ~)
+            playSounds@Test(app, app.currentTrialNumber);
+        end
+
         % Navigates to the next trial
-        function NextTrial(app, ~)
-            % If we have finished the last trial, move on to the next sound
+        % Called when the user makes a selection
+        % Returns: Nothing
+        function nextTrial(app, ~)
+            % If we have finished the last trial, move on to the test
             if app.currentTrialNumber == app.numTrials
-                app.NavToTest();
+                app.System.runTest();
             else
                 % otherwise, move on to the next trial
                 app.currentTrialNumber = app.currentTrialNumber + 1;
@@ -45,26 +57,30 @@ classdef PracticeTest < Test
                 
                 % Play sounds
                 pause(0.1);
-                app.PlaySounds(app.currentTrialNumber);
+                app.playSounds(app.currentTrialNumber);
+            end
+        end
+    end
+
+    methods (Access = private)
+
+        % Processes keyboard input
+        % Args
+            % KeyData       The key that was pressed
+        % Returns: Nothing
+        function processKeyPress(app, ~, KeyData)
+            if KeyData.Key == 'j'
+                app.JButton.Value = true;
+                app.nextTrial();
+            elseif KeyData.Key == 'f'
+                app.FButton.Value = true;
+                app.nextTrial();
+            elseif KeyData.Key == 'space'
+                app.playSounds();
             end
         end
 
-        % Navigates to the real test
-        function NavToTest(app)
-            % Delete test components
-            while ~isempty(app.RecognitionPanel.Children)
-                app.RecognitionPanel.Children(1).delete();
-            end
-            app.System.test.runTest(app.UIFigure, app.System);
-        end
-
-        function PlaySounds(app, ~)
-            PlaySounds@Test(app, app.currentTrialNumber);
-        end
-
-
-        function createTestComponents(app, UIFigure)
-            app.UIFigure = UIFigure;
+        function createTestComponents(app)
             set(app.UIFigure, 'KeyPressFcn', @app.processKeyPress);
 
             % Create RecognitionPanel
@@ -75,21 +91,21 @@ classdef PracticeTest < Test
 
             % Create FButton
             app.FButton = uibutton(app.RecognitionPanel, 'state');
-            app.FButton.ValueChangedFcn = createCallbackFcn(app, @NextTrial, true);
+            app.FButton.ValueChangedFcn = createCallbackFcn(app, @nextTrial, true);
             app.FButton.Text = 'F';
             app.FButton.FontSize = 48;
             app.FButton.Position = [300 316 90 97];
 
             % Create JButton
             app.JButton = uibutton(app.RecognitionPanel, 'state');
-            app.JButton.ValueChangedFcn = createCallbackFcn(app, @NextTrial, true);
+            app.JButton.ValueChangedFcn = createCallbackFcn(app, @nextTrial, true);
             app.JButton.Text = 'J';
             app.JButton.FontSize = 48;
             app.JButton.Position = [593 317 90 97];
 
             % Create HearSoundsButton
             app.HearSoundsButton = uibutton(app.RecognitionPanel, 'push');
-            app.HearSoundsButton.ButtonPushedFcn = createCallbackFcn(app, @PlaySounds, true);
+            app.HearSoundsButton.ButtonPushedFcn = createCallbackFcn(app, @playSounds, true);
             app.HearSoundsButton.FontSize = 18;
             app.HearSoundsButton.Position = [260 149 450 50];
             app.HearSoundsButton.Text = 'Hear Sounds';

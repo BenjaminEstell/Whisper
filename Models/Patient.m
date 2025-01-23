@@ -1,4 +1,4 @@
-classdef Patient
+classdef Patient < handle
     % Patient Class
     %   Class to hold patient data for a test
 
@@ -14,8 +14,17 @@ classdef Patient
 
     methods
         % Class constructor
-        function obj = Patient(idIn)
+        function obj = Patient(idIn, DOB, sex)
             obj.ID = idIn;
+            obj.DOB = DOB;
+            obj.sex = sex;
+        end
+
+        function setPatientHearing(obj, leftDevice, leftYears, rightDevice, rightYears)
+            obj.leftEarDevice = leftDevice;
+            obj.leftEarDeviceYears = leftYears;
+            obj.rightEarDevice = rightDevice;
+            obj.rightEarDeviceYears = rightYears;
         end
     end
 end

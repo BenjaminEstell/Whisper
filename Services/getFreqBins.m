@@ -1,4 +1,4 @@
-function binnum = getFreqBins(samplingRate, numSamples, numBins, minFreq, maxFreq)
+function binnum = GetFreqBins(numSamples, numBins, minFreq, maxFreq)
         % ### get_freq_bins
         % 
         % Generates a vector indicating
@@ -21,11 +21,11 @@ function binnum = getFreqBins(samplingRate, numSamples, numBins, minFreq, maxFre
 
         % Define Frequency Bin Indices 1 through self.n_bins
         %bintops = round(mels2hz(linspace(hz2mels(minFreq), hz2mels(maxFreq), numBins+1)));
-        bintops = linspace(minFreq, maxFreq, numBins+1);
+        bintops = linspace(minFreq, cast(maxFreq, "double"), numBins+1);
         bin_starts = bintops(1:end-1);
         bin_stops = bintops(2:end); 
         binnum = zeros(numSamples, 1);
-        frequency_vector = linspace(0, numSamples, numSamples)';
+        frequency_vector = linspace(0, cast(numSamples, "double"), cast(numSamples, "double"))';
         for itor = 1:numBins
             % Assign all binnum values whose indices match with the indices
             % of frequency vector whose values fall within the range

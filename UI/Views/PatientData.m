@@ -1,76 +1,77 @@
 classdef PatientData < matlab.apps.AppBase
+    % Patient Data
+    % Constructs the UI to collect patient data before beginning the test
 
-    % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                       matlab.ui.Figure
-        PatientDataPanel               matlab.ui.container.Panel
-        YearssincerightearhearingdeviceinsertionEditField  matlab.ui.control.NumericEditField
-        YearssincerightearhearingdeviceinsertionEditField_2Label  matlab.ui.control.Label
-        BeginTestButton   matlab.ui.control.Button
-        YearssinceleftearhearingdeviceinsertionEditField  matlab.ui.control.NumericEditField
-        YearssinceleftearhearingdeviceinsertionEditFieldLabel  matlab.ui.control.Label
-        Panel                          matlab.ui.container.Panel
-        SexDropDown                    matlab.ui.control.DropDown
-        SexDropDownLabel               matlab.ui.control.Label
-        DateofBirthDatePicker          matlab.ui.control.DatePicker
-        DateofBirthDatePickerLabel     matlab.ui.control.Label
-        PatientIDEditField             matlab.ui.control.EditField
-        PatientIDEditFieldLabel        matlab.ui.control.Label
-        RightEarHearingDeviceDropDown  matlab.ui.control.DropDown
+        UIFigure                            matlab.ui.Figure
+        PatientDataPanel                    matlab.ui.container.Panel
+        RightEarEditField                   matlab.ui.control.NumericEditField
+        RightEarEditField_2Label            matlab.ui.control.Label
+        BeginTestButton                     matlab.ui.control.Button
+        LeftEarEditField                    matlab.ui.control.NumericEditField
+        LeftEarEditFieldLabel               matlab.ui.control.Label
+        Panel                               matlab.ui.container.Panel
+        SexDropDown                         matlab.ui.control.DropDown
+        SexDropDownLabel                    matlab.ui.control.Label
+        DateofBirthDatePicker               matlab.ui.control.DatePicker
+        DateofBirthDatePickerLabel          matlab.ui.control.Label
+        PatientIDEditField                  matlab.ui.control.EditField
+        PatientIDEditFieldLabel             matlab.ui.control.Label
+        RightEarHearingDeviceDropDown       matlab.ui.control.DropDown
         RightEarHearingDeviceDropDownLabel  matlab.ui.control.Label
-        LeftEarHearingDeviceDropDown   matlab.ui.control.DropDown
-        LeftEarHearingDeviceDropDownLabel  matlab.ui.control.Label
-        System                          Whisper
+        LeftEarHearingDeviceDropDown        matlab.ui.control.DropDown
+        LeftEarHearingDeviceDropDownLabel   matlab.ui.control.Label
+        System                              Whisper
     end
 
-    % Callbacks that handle component events
+    methods (Access = public)
+
+        % PatientData constructor
+        function obj = PatientData(UIFigure, WhisperIn)
+            obj.UIFigure = UIFigure;
+            obj.System = WhisperIn;
+            obj.createComponents();
+        end
+
+    end
+
     methods (Access = private)
+
+        function configurePatientData(app)
+            app.System.test.createPatient(app.PatientIDEditField.Value, app.DateofBirthDatePicker.Value, app.SexDropDown.Value);
+            app.System.test.setPatientHearing(app.LeftEarHearingDeviceDropDown.Value, app.LeftEarEditField.Value, app.RightEarHearingDeviceDropDown.Value, app.RightEarEditField.Value);
+        end
+
         % Value changed function: LeftEarHearingDeviceDropDown
-        function LeftEarSelection(app, event)
+        function leftEarSelection(app, ~)
             value = app.LeftEarHearingDeviceDropDown.Value;
             if strcmp(value, "None")
-                app.YearssinceleftearhearingdeviceinsertionEditField.Enable = false;
+                app.LeftEarEditField.Enable = false;
             else
-                app.YearssinceleftearhearingdeviceinsertionEditField.Enable = true;
+                app.LeftEarEditField.Enable = true;
             end
         end
 
         % Value changed function: RightEarHearingDeviceDropDown
-        function RightEarSelection(app, event)
+        function rightEarSelection(app, ~)
             value = app.RightEarHearingDeviceDropDown.Value;
             if strcmp(value, "None")
-                app.YearssincerightearhearingdeviceinsertionEditField.Enable = false;
+                app.RightEarEditField.Enable = false;
             else
-                app.YearssincerightearhearingdeviceinsertionEditField.Enable = true;
+                app.RightEarEditField.Enable = true;
             end
         end
 
-        % Button pushed function: BeginTestButton
-        function BeginTest(app, ~)
+        % Saves patient data, and begins the test
+        % Called when the user selects "Begin Test"
+        function beginTest(app, ~)
             % Save selections
-            app.System.test.patient = ConfigurePatientData(app);
-            % clear the current ui
-            for ii = 1:length(app.UIFigure.Children)
-                app.UIFigure.Children(ii).Visible = false;
-            end
-            % Build test UI
-            if (app.System.practiceTest)
-                practice = PracticeTest(app.System);
-                practice.createTestComponents(app.UIFigure);
-                practice.PlaySounds(1);
-            else
-                app.System.test.runTest(app.UIFigure, app.System);
-            end
+            app.configurePatientData();
+            app.System.toTest();
         end
-    end
-
-    % Component initialization
-    methods (Access = public)
 
         % Create UIFigure and components
-        function createComponents(app, UIFigure, WhisperIn)
-            app.UIFigure = UIFigure;
-            app.System = WhisperIn;
+        function createComponents(app)
 
             % Create PatientDataPanel
             app.PatientDataPanel = uipanel(app.UIFigure);
@@ -87,7 +88,7 @@ classdef PatientData < matlab.apps.AppBase
             % Create LeftEarHearingDeviceDropDown
             app.LeftEarHearingDeviceDropDown = uidropdown(app.PatientDataPanel);
             app.LeftEarHearingDeviceDropDown.Items = {'None', 'Hearing Aid', 'Cochlear Implant'};
-            app.LeftEarHearingDeviceDropDown.ValueChangedFcn = createCallbackFcn(app, @LeftEarSelection, true);
+            app.LeftEarHearingDeviceDropDown.ValueChangedFcn = createCallbackFcn(app, @leftEarSelection, true);
             app.LeftEarHearingDeviceDropDown.FontSize = 14;
             app.LeftEarHearingDeviceDropDown.Position = [301 285 175 35];
             app.LeftEarHearingDeviceDropDown.Value = 'None';
@@ -102,7 +103,7 @@ classdef PatientData < matlab.apps.AppBase
             % Create RightEarHearingDeviceDropDown
             app.RightEarHearingDeviceDropDown = uidropdown(app.PatientDataPanel);
             app.RightEarHearingDeviceDropDown.Items = {'None', 'Hearing Aid', 'Cochlear Implant'};
-            app.RightEarHearingDeviceDropDown.ValueChangedFcn = createCallbackFcn(app, @RightEarSelection, true);
+            app.RightEarHearingDeviceDropDown.ValueChangedFcn = createCallbackFcn(app, @rightEarSelection, true);
             app.RightEarHearingDeviceDropDown.FontSize = 14;
             app.RightEarHearingDeviceDropDown.Position = [690 285 175 35];
             app.RightEarHearingDeviceDropDown.Value = 'None';
@@ -149,46 +150,46 @@ classdef PatientData < matlab.apps.AppBase
             app.SexDropDown.Position = [113 27 150 35];
             app.SexDropDown.Value = 'Male';
 
-            % Create YearssinceleftearhearingdeviceinsertionEditFieldLabel
-            app.YearssinceleftearhearingdeviceinsertionEditFieldLabel = uilabel(app.PatientDataPanel);
-            app.YearssinceleftearhearingdeviceinsertionEditFieldLabel.HorizontalAlignment = 'right';
-            app.YearssinceleftearhearingdeviceinsertionEditFieldLabel.WordWrap = 'on';
-            app.YearssinceleftearhearingdeviceinsertionEditFieldLabel.Position = [154 205 132 35];
-            app.YearssinceleftearhearingdeviceinsertionEditFieldLabel.Text = 'Years since left ear hearing device insertion';
-            app.YearssinceleftearhearingdeviceinsertionEditFieldLabel.FontSize = 14;
+            % Create LeftEarEditFieldLabel
+            app.LeftEarEditFieldLabel = uilabel(app.PatientDataPanel);
+            app.LeftEarEditFieldLabel.HorizontalAlignment = 'right';
+            app.LeftEarEditFieldLabel.WordWrap = 'on';
+            app.LeftEarEditFieldLabel.Position = [154 205 132 35];
+            app.LeftEarEditFieldLabel.Text = 'Years since left ear hearing device insertion';
+            app.LeftEarEditFieldLabel.FontSize = 14;
 
-            % Create YearssinceleftearhearingdeviceinsertionEditField
-            app.YearssinceleftearhearingdeviceinsertionEditField = uieditfield(app.PatientDataPanel, 'numeric');
-            app.YearssinceleftearhearingdeviceinsertionEditField.Limits = [0 100];
-            app.YearssinceleftearhearingdeviceinsertionEditField.ValueDisplayFormat = '%.0f';
-            app.YearssinceleftearhearingdeviceinsertionEditField.Enable = 'off';
-            app.YearssinceleftearhearingdeviceinsertionEditField.Position = [301 203 175 35];
-            app.YearssinceleftearhearingdeviceinsertionEditField.FontSize = 14;
+            % Create LeftEarEditField
+            app.LeftEarEditField = uieditfield(app.PatientDataPanel, 'numeric');
+            app.LeftEarEditField.Limits = [0 100];
+            app.LeftEarEditField.ValueDisplayFormat = '%.0f';
+            app.LeftEarEditField.Enable = 'off';
+            app.LeftEarEditField.Position = [301 203 175 35];
+            app.LeftEarEditField.FontSize = 14;
 
             % Create BeginTestButton
             app.BeginTestButton = uibutton(app.PatientDataPanel, 'push');
-            app.BeginTestButton.ButtonPushedFcn = createCallbackFcn(app, @BeginTest, true);
+            app.BeginTestButton.ButtonPushedFcn = createCallbackFcn(app, @beginTest, true);
             app.BeginTestButton.FontSize = 14;
             app.BeginTestButton.FontWeight = 'bold';
             app.BeginTestButton.FontColor = [0.851 0.3255 0.098];
             app.BeginTestButton.Position = [698 23 250 45];
             app.BeginTestButton.Text = 'Begin Test';
 
-            % Create YearssincerightearhearingdeviceinsertionEditField_2Label
-            app.YearssincerightearhearingdeviceinsertionEditField_2Label = uilabel(app.PatientDataPanel);
-            app.YearssincerightearhearingdeviceinsertionEditField_2Label.HorizontalAlignment = 'right';
-            app.YearssincerightearhearingdeviceinsertionEditField_2Label.WordWrap = 'on';
-            app.YearssincerightearhearingdeviceinsertionEditField_2Label.Position = [543 205 132 35];
-            app.YearssincerightearhearingdeviceinsertionEditField_2Label.Text = 'Years since right ear hearing device insertion';
-            app.YearssincerightearhearingdeviceinsertionEditField_2Label.FontSize = 14;
+            % Create RightEarEditField_2Label
+            app.RightEarEditField_2Label = uilabel(app.PatientDataPanel);
+            app.RightEarEditField_2Label.HorizontalAlignment = 'right';
+            app.RightEarEditField_2Label.WordWrap = 'on';
+            app.RightEarEditField_2Label.Position = [543 205 132 35];
+            app.RightEarEditField_2Label.Text = 'Years since right ear hearing device insertion';
+            app.RightEarEditField_2Label.FontSize = 14;
 
-            % Create YearssincerightearhearingdeviceinsertionEditField
-            app.YearssincerightearhearingdeviceinsertionEditField = uieditfield(app.PatientDataPanel, 'numeric');
-            app.YearssincerightearhearingdeviceinsertionEditField.Limits = [0 100];
-            app.YearssincerightearhearingdeviceinsertionEditField.ValueDisplayFormat = '%.0f';
-            app.YearssincerightearhearingdeviceinsertionEditField.Enable = 'off';
-            app.YearssincerightearhearingdeviceinsertionEditField.Position = [690 203 175 35];
-            app.YearssincerightearhearingdeviceinsertionEditField.FontSize = 14;
+            % Create RightEarEditField
+            app.RightEarEditField = uieditfield(app.PatientDataPanel, 'numeric');
+            app.RightEarEditField.Limits = [0 100];
+            app.RightEarEditField.ValueDisplayFormat = '%.0f';
+            app.RightEarEditField.Enable = 'off';
+            app.RightEarEditField.Position = [690 203 175 35];
+            app.RightEarEditField.FontSize = 14;
         end
     end
 end

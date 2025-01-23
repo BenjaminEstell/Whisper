@@ -1,138 +1,156 @@
 classdef TestReport < matlab.apps.AppBase
+    % Test Report
+    % UI for the test report displayed at the conclusion of the test
 
-    % Properties that correspond to app components
-    properties (Access = public)
+    properties
         UIFigure                      matlab.ui.Figure
         UIAxes                        matlab.ui.control.UIAxes
         TestCompletePanel             matlab.ui.container.Panel
         TestCompletionHomeButton      matlab.ui.control.Button
         ViewTestReportButton          matlab.ui.control.Button
-        CongratulationsYouvereachedtheendofthetestLabel  matlab.ui.control.Label
+        EndOfTestLabel                matlab.ui.control.Label
         TestReportPanel               matlab.ui.container.Panel
         TestReportHomeButton          matlab.ui.control.Button
-        bInternalRepresentationPanel  matlab.ui.container.Panel
+        InternalRepresentationPanel   matlab.ui.container.Panel
         PlaySoundButton               matlab.ui.control.Button
         SoundListBox                  matlab.ui.control.ListBox
         SoundListBoxLabel             matlab.ui.control.Label
-        showInternalRepresentationButton matlab.ui.control.CheckBox
-        showHumanVoicedSoundButton    matlab.ui.control.CheckBox
+        ShowInternalRepresentationButton matlab.ui.control.CheckBox
+        ShowHumanVoicedSoundButton    matlab.ui.control.CheckBox
         System                        Whisper
         currentSound                  Sound
-        showIR                        
-        showHVS
+        showIR                        logical
+        showHVS                       logical
     end
 
-    % Callbacks that handle component events
-    methods (Access = private)
+    methods
 
-        % Button pushed function: HomeButton
-        function ReturnHome(app, event)
-            % Destroy all UI elements except UIFigure
-            while ~isempty(app.UIFigure.Children)
-                app.UIFigure.Children(1).delete();
-            end
-
-            % Construct Home view
-            app.System.createComponents(app.System.UIFigure);
+        % Test Report Constructor
+        % Constructs a Test Report object and generates the test completetion
+        % screen UI
+        % Args
+            % UIFigure      matlab.ui.Figure    a reference to the figure used to display the trial
+            % system        Whisper a reference to the global system object
+        % Returns: the constructed TestReport
+        function obj = TestReport(UIFigure, system)
+            obj.UIFigure = UIFigure;
+            obj.System = system;
+            obj.createTestCompleteCardComponents();
+            obj.currentSound = obj.System.test.getFirstSound();
+            obj.showIR = true;
+            obj.showHVS = true;
         end
 
-        % Button pushed function: ViewTestReportButton
-        function ViewTestReport(app, event)
-            % Clear contents of the UI
+        % Returns to the Home Screen
+        % Called when the user clicks the "Return Home" button
+        % Returns: Nothing
+        function ReturnHome(app, ~)
+           app.System.returnHome();
+        end
+
+        % Displays the Test Report
+        % Called when the user clicks the "View Test Report" button
+        % Returns: Nothing
+        function ViewTestReport(app, ~)
+            % Clear contents of the test completion UI
             for ii = 1:length(app.UIFigure.Children)
                 app.UIFigure.Children(ii).Visible = false;
             end
 
             % Build test report UI
-            app.createTestReportComponents(app.UIFigure);
+            app.createTestReportComponents();
         end
 
-        % Value changed function: SoundListBox
-        function toggleLabel(app, event)
+        % Displays the test report of a new sound
+        % Called when the user selects the test report of a new sound
+        % Returns: Nothing
+        function toggleLabel(app, ~)
             value = app.SoundListBox.Value;
             % get the current Sound object from the name
-            for ii = 1:length(app.System.test.sounds)
-                sd = app.System.test.sounds{ii};
+            sounds = app.System.test.getSounds();
+            for ii = 1:length(sounds)
+                sd = sounds{ii};
                 if strcmp(sd.name, value)
                     app.currentSound = sd;
                     break;
                 end
             end
-            app.bInternalRepresentationPanel.Title = value + " Internal Representation";
+            app.InternalRepresentationPanel.Title = value + " Internal Representation";
 
             % Update graphs
-            app.UpdatePlot();
+            app.updatePlot();
         end
 
-        function PlayInternalRepresentation(app, event)
+        % Plays the reconstructed sound
+        % Called when the user clicks the "Play Internal Representation" button
+        % Returns: Nothing
+        function PlayInternalRepresentation(app, ~)
             % Play sound
             sound(real(app.currentSound.internalRepresentationTimeDomain), app.currentSound.samplingRate);
         end
 
-        function listOut = ListConversion(app, listIn)
-            listOut = {};
-            for ii = 1:length(listIn)
-                listOut{end + 1} = char(string(listIn{ii}.name));
-            end
-        end
-
-        function ToggleInternalRepresentation(app, event)
+        % Updates the test report plots
+        % Called when the user toggles what graphs are plotted
+        % Returns: Nothing
+        function ToggleInternalRepresentation(app, ~)
             app.showIR = ~app.showIR;
-            app.UpdatePlot();
+            app.updatePlot();
         end
 
-        function ToggleHumanVoicedSound(app, event)
+        % Updates the test report plots
+        % Called when the user toggles what graphs are plotted
+        % Returns: Nothing
+        function ToggleHumanVoicedSound(app, ~)
             app.showHVS = ~app.showHVS;
-            app.UpdatePlot();
+            app.updatePlot();
         end
 
-        % Updates the plot
-        function UpdatePlot(app)
+        % Updates the test report axes
+        % Called whenever an axes control is toggled
+        function updatePlot(app)
+            % Get the list of x values
             x = 1:app.currentSound.numFreqs;
             OGSound = imresize(app.currentSound.humanVoicedSoundFrequencyDomain, [app.currentSound.numFreqs 1], "nearest");
             internalRepresentation = imresize(app.currentSound.internalRepresentation, [app.currentSound.numFreqs 1], "nearest");
             % Scale internal representation to match the OG sound
             match = rms(OGSound(1:app.currentSound.numFreqs)) / rms(internalRepresentation);
             if app.showIR && app.showHVS
+                % Display internal representation and human voiced sound
                 area(app.UIAxes, x, (abs(internalRepresentation).*match), FaceColor='b', EdgeColor='b', FaceAlpha=0.3, EdgeAlpha=0.3);
                 hold(app.UIAxes, "on");
                 area(app.UIAxes, x, abs(OGSound(1:app.currentSound.numFreqs)), FaceColor='r', EdgeColor='r', FaceAlpha=0.3, EdgeAlpha=0.3);
                 legend(app.UIAxes, 'Internal Representation', 'Human-Voiced Sound');
                 hold(app.UIAxes, "off");
             elseif app.showIR && ~app.showHVS
+                % Display only the internal representation
                 area(app.UIAxes, x, (abs(internalRepresentation).*match), FaceColor='b', EdgeColor='b', FaceAlpha=0.3, EdgeAlpha=0.3);
                 legend(app.UIAxes, 'Internal Representation');
             elseif app.showHVS && ~ app.showIR
+                % Display only the human voiced sound
                 area(app.UIAxes, x, abs(OGSound(1:app.currentSound.numFreqs)), FaceColor='r', EdgeColor='r', FaceAlpha=0.3, EdgeAlpha=0.3);
                 legend(app.UIAxes, 'Human-Voiced Sound');
             else
+                % Clear all plots from the axes
                 cla(app.UIAxes);
             end
         end
-    end
-
-    % Component initialization
-    methods (Access = public)
 
         % Create UIFigure and components
-        function createTestCompleteCardComponents(app, UIFigure, WhisperIn)
-            app.UIFigure = UIFigure;
-            app.System = WhisperIn;
-
+        function createTestCompleteCardComponents(app)
             % Create TestCompletePanel
             app.TestCompletePanel = uipanel(app.UIFigure);
-            app.TestCompletePanel.Title = string(app.System.test.mode) + ' Test Complete';
+            app.TestCompletePanel.Title = string(app.System.test.getTestMode()) + ' Test Complete';
             app.TestCompletePanel.FontSize = 14;
             app.TestCompletePanel.Position = [16 16 970 670];
 
-            % Create CongratulationsYouvereachedtheendofthetestLabel
-            app.CongratulationsYouvereachedtheendofthetestLabel = uilabel(app.TestCompletePanel);
-            app.CongratulationsYouvereachedtheendofthetestLabel.HorizontalAlignment = 'center';
-            app.CongratulationsYouvereachedtheendofthetestLabel.WordWrap = 'on';
-            app.CongratulationsYouvereachedtheendofthetestLabel.FontSize = 36;
-            app.CongratulationsYouvereachedtheendofthetestLabel.FontWeight = 'bold';
-            app.CongratulationsYouvereachedtheendofthetestLabel.Position = [51 374 868 133];
-            app.CongratulationsYouvereachedtheendofthetestLabel.Text = {'Congratulations! '; 'You''ve reached the end of the test.'};
+            % Create EndOfTestLabel
+            app.EndOfTestLabel = uilabel(app.TestCompletePanel);
+            app.EndOfTestLabel.HorizontalAlignment = 'center';
+            app.EndOfTestLabel.WordWrap = 'on';
+            app.EndOfTestLabel.FontSize = 36;
+            app.EndOfTestLabel.FontWeight = 'bold';
+            app.EndOfTestLabel.Position = [51 374 868 133];
+            app.EndOfTestLabel.Text = {'Congratulations! '; 'You''ve reached the end of the test.'};
 
             % Create ViewTestReportButton
             app.ViewTestReportButton = uibutton(app.TestCompletePanel, 'push');
@@ -151,16 +169,10 @@ classdef TestReport < matlab.apps.AppBase
         end
 
         % Create UIFigure and components
-        function createTestReportComponents(app, UIFigure)
-            app.UIFigure = UIFigure;
-            app.currentSound = app.System.test.sounds{1};
-            app.showIR = true;
-            app.showHVS = true;
-
-
+        function createTestReportComponents(app)
             % Create TestReportPanel
             app.TestReportPanel = uipanel(app.UIFigure);
-            app.TestReportPanel.Title = 'Test Report - Patient ' + string(app.System.test.patient.ID);
+            app.TestReportPanel.Title = 'Test Report - Patient ' + string(app.System.test.getPatient().ID);
             app.TestReportPanel.FontSize = 14;
             app.TestReportPanel.Position = [16 16 970 670];
 
@@ -169,31 +181,31 @@ classdef TestReport < matlab.apps.AppBase
             app.SoundListBoxLabel.HorizontalAlignment = 'right';
             app.SoundListBoxLabel.FontSize = 14;
             app.SoundListBoxLabel.Position = [52 598 65 22];
-            app.SoundListBoxLabel.Text = string(app.System.test.mode);
+            app.SoundListBoxLabel.Text = string(app.System.test.getTestMode());
 
             % Create SoundListBox
             app.SoundListBox = uilistbox(app.TestReportPanel);
-            app.SoundListBox.Items = app.ListConversion(app.System.test.sounds);
+            app.SoundListBox.Items = ListConversion(app.System.test.getSounds());
             app.SoundListBox.ValueChangedFcn = createCallbackFcn(app, @toggleLabel, true);
             app.SoundListBox.FontSize = 14;
             app.SoundListBox.Position = [16 137 101 462];
             app.SoundListBox.Value = app.SoundListBox.Items(1);
 
             % Create bInternalRepresentationPanel
-            app.bInternalRepresentationPanel = uipanel(app.TestReportPanel);
-            app.bInternalRepresentationPanel.Title = string(app.currentSound.name) + ' Internal Representation';
-            app.bInternalRepresentationPanel.FontSize = 14;
-            app.bInternalRepresentationPanel.Position = [190 18 770 602];
+            app.InternalRepresentationPanel = uipanel(app.TestReportPanel);
+            app.InternalRepresentationPanel.Title = string(app.currentSound.name) + ' Internal Representation';
+            app.InternalRepresentationPanel.FontSize = 14;
+            app.InternalRepresentationPanel.Position = [190 18 770 602];
 
             % Create frequency chart
-            app.UIAxes = uiaxes(app.bInternalRepresentationPanel);
+            app.UIAxes = uiaxes(app.InternalRepresentationPanel);
             title(app.UIAxes, 'Internal Representation')
             xlabel(app.UIAxes, 'Frequency (Hz)')
             ylabel(app.UIAxes, 'Amplitude')
             app.UIAxes.Position = [8 60 750 510];
 
             % Create PlaySoundButton
-            app.PlaySoundButton = uibutton(app.bInternalRepresentationPanel, 'push');
+            app.PlaySoundButton = uibutton(app.InternalRepresentationPanel, 'push');
             app.PlaySoundButton.ButtonPushedFcn = createCallbackFcn(app, @PlayInternalRepresentation, true);
             app.PlaySoundButton.FontSize = 14;
             app.PlaySoundButton.Position = [259 10 250 45];
@@ -206,22 +218,23 @@ classdef TestReport < matlab.apps.AppBase
             app.TestReportHomeButton.Position = [16 28 150 45];
             app.TestReportHomeButton.Text = 'Home';
             
-            % Create showInternalRepresentationButton
-            app.showInternalRepresentationButton = uicheckbox(app.bInternalRepresentationPanel);
-            app.showInternalRepresentationButton.ValueChangedFcn = createCallbackFcn(app, @ToggleInternalRepresentation, true);
-            app.showInternalRepresentationButton.Text = 'show Internal Representation';
-            app.showInternalRepresentationButton.FontSize = 14;
-            app.showInternalRepresentationButton.Position = [40 40 200 22];
-            app.showInternalRepresentationButton.Value = true;
+            % Create ShowInternalRepresentationButton
+            app.ShowInternalRepresentationButton = uicheckbox(app.InternalRepresentationPanel);
+            app.ShowInternalRepresentationButton.ValueChangedFcn = createCallbackFcn(app, @ToggleInternalRepresentation, true);
+            app.ShowInternalRepresentationButton.Text = 'show Internal Representation';
+            app.ShowInternalRepresentationButton.FontSize = 14;
+            app.ShowInternalRepresentationButton.Position = [40 40 200 22];
+            app.ShowInternalRepresentationButton.Value = true;
 
             % Create showHumanVoicedSoundButton
-            app.showHumanVoicedSoundButton = uicheckbox(app.bInternalRepresentationPanel);
-            app.showHumanVoicedSoundButton.ValueChangedFcn = createCallbackFcn(app, @ToggleHumanVoicedSound, true);
-            app.showHumanVoicedSoundButton.Text = 'show Human Voiced Sound';
-            app.showHumanVoicedSoundButton.FontSize = 14;
-            app.showHumanVoicedSoundButton.Position = [40 10 200 22];
-            app.showHumanVoicedSoundButton.Value = true;
+            app.ShowHumanVoicedSoundButton = uicheckbox(app.InternalRepresentationPanel);
+            app.ShowHumanVoicedSoundButton.ValueChangedFcn = createCallbackFcn(app, @ToggleHumanVoicedSound, true);
+            app.ShowHumanVoicedSoundButton.Text = 'show Human Voiced Sound';
+            app.ShowHumanVoicedSoundButton.FontSize = 14;
+            app.ShowHumanVoicedSoundButton.Position = [40 10 200 22];
+            app.ShowHumanVoicedSoundButton.Value = true;
 
+            % Displays the test report for the first sound
             app.toggleLabel();
         end
     end

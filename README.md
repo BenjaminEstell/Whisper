@@ -15,4 +15,6 @@ After the test is complete, Whisper allows researchers to download the data from
 of the patient's bimodal integration.
 
 # References
-Portions of this project were significantly influenced by Lammert et al's work on tinnitus reconstruction. 
+Portions of this project were influenced by Lammert et al's work on tinnitus reconstruction.
+The getFreqBins function was borrowed from Lammert et al's work.
+The Segmented Smooth function was borrowed from Thomas O'Harver as indicated in the comments in that file.

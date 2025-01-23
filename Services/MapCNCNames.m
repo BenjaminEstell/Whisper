@@ -1,5 +1,5 @@
 % Creates a mapping of CNC word file names to CNC words
-function CNCMap = mapCNCNames()
+function CNCMap = MapCNCNames()
     CNCMap = configureDictionary("string", "string");
     
     % Insert values into the dictionary

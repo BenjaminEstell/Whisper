@@ -1,29 +1,40 @@
 classdef Trial < matlab.apps.AppBase
-    %TRIAL Summary of this class goes here
-    %   Detailed explanation goes here
-    
+    % Trial 
+    % The Trial class is the UI for each trial performed in the test. 
     properties
-        UIFigure            matlab.ui.Figure
-        RecognitionPanel     matlab.ui.container.Panel
+        UIFigure                    matlab.ui.Figure
+        RecognitionPanel            matlab.ui.container.Panel
         JButton                     matlab.ui.control.StateButton
         FButton                     matlab.ui.control.StateButton
-        SoundLabel                     matlab.ui.control.Label
+        SoundLabel                  matlab.ui.control.Label
         DifferentLabel              matlab.ui.control.Label
         SameLabel                   matlab.ui.control.Label
         HearSoundsButton            matlab.ui.control.Button
-        TestTrialCountLabel            matlab.ui.control.Label
-        TestSoundCountLabel             matlab.ui.control.Label
-        currentSoundName
-        currentSoundNumber
-        numSounds
-        currentTrial
-        numTrials
-        System                  Whisper
+        TestTrialCountLabel         matlab.ui.control.Label
+        TestSoundCountLabel         matlab.ui.control.Label
+        currentSoundName            string
+        currentSoundNumber          int16
+        numSounds                   int16
+        currentTrial                int16 
+        numTrials                   int16
+        System                      Whisper
     end
     
     methods
 
         % Trial Constructor
+        % Constructs a Trial object, generates the Trial UI, and begins the
+        % trial. The trial object is reused for every trial of the sound.
+        % It is destroyed by its parent object (a SoundCard) when the sound
+        % is finished.
+        % Args
+            % currentSoundName      string
+            % currentSoundNumber    int     index of the current sound within the sounds array of the test
+            % numSounds             int     the number of sounds in the test
+            % numTrials             int     the number of trials for each sound
+            % system                Whisper a reference to the global system object
+            % UIFigure              matlab.ui.Figure    a reference to the figure used to display the trial
+        % Returns: the constructed Trial object
         function obj = Trial(currentSoundName, currentSoundNumber, numSounds, numTrials, system, UIFigure)
             obj.currentSoundName = currentSoundName;
             obj.currentSoundNumber = currentSoundNumber;
@@ -32,29 +43,38 @@ classdef Trial < matlab.apps.AppBase
             obj.numTrials = numTrials;
             obj.System = system;
             obj.UIFigure = UIFigure;
-            % Generate Stimulus
-            system.test.currentSound.stimulusMatrix = GenerateStimulusMatrix(system.test.currentSound);
+            % Generate the stimuli for the trials
+            obj.System.test.getCurrentSound().generateStimulusMatrix();
+            % Generate the UI for the trials
             obj.createTestComponents();
-            pause(0.4);
-            obj.System.test.PlaySounds(obj.currentTrial);
+            pause(0.3);
+            % Begin the first trial
+            obj.playSounds();
         end
 
         % Keyboard shortcuts
+        % Args
+            % KeyData       the value of the key that was pressed
+        % Returns: Nothing
         function processKeyPress(app, ~, KeyData)
             if KeyData.Key == 'j'
                 app.JButton.Value = true;
-                app.NextTrial();
+                app.nextTrial();
             elseif KeyData.Key == 'f'
                 app.FButton.Value = true;
-                app.NextTrial();
+                app.nextTrial();
             elseif KeyData.Key == 'space'
-                app.System.test.PlaySounds(app.currentTrial);
+                app.System.test.playSounds(app.currentTrial);
             end
         end
 
-        function NextTrial(app, ~)
+        % Advances to the next trial in the test
+        % Called when the user makes a selection
+        % Returns: Nothing
+        function nextTrial(app, ~)
             % Updates the model
             if app.System.test.nextTrial(app.FButton.Value, app.JButton.Value)
+                % If there are more trials remaining
                 % Updates the UI from the updated model
                 app.currentTrial = app.currentTrial + 1;
                 app.TestTrialCountLabel.Text = 'Trial ' + string(app.currentTrial) + ' of ' + string(app.numTrials);
@@ -62,18 +82,25 @@ classdef Trial < matlab.apps.AppBase
                 app.JButton.Value = false;
                 
                 % Play sounds
-                pause(0.2);
-                app.System.test.PlaySounds(app.currentTrial);
+                app.System.test.playSounds(app.currentTrial);
             end
+            % If no trials remain, the Test directs the SoundCard to
+            % advance to the next Sound in the Test, deleting the Trial.
         end
 
+        % Plays the sounds for the trial
+        % Called when the trial begins or when users request that the
+        % sounds be played again
+        % Returns: Nothing
         function playSounds(app, ~)
-            app.System.test.PlaySounds(app.currentTrial);
+            app.System.test.playSounds(app.currentTrial);
         end
 
 
-        % Create UIFigure and components
+        % Constructs the UI for the Trial
+        % Returns: Nothing
         function createTestComponents(app)
+            % Allows the UIFigure to respond to keyboard inputs
             set(app.UIFigure, 'KeyPressFcn', @app.processKeyPress);
 
             % Create RecognitionPanel
@@ -84,14 +111,14 @@ classdef Trial < matlab.apps.AppBase
 
             % Create FButton
             app.FButton = uibutton(app.RecognitionPanel, 'state');
-            app.FButton.ValueChangedFcn = createCallbackFcn(app, @NextTrial, false);
+            app.FButton.ValueChangedFcn = createCallbackFcn(app, @nextTrial, false);
             app.FButton.Text = 'F';
             app.FButton.FontSize = 48;
             app.FButton.Position = [300 316 90 97];
 
             % Create JButton
             app.JButton = uibutton(app.RecognitionPanel, 'state');
-            app.JButton.ValueChangedFcn = createCallbackFcn(app, @NextTrial, true);
+            app.JButton.ValueChangedFcn = createCallbackFcn(app, @nextTrial, true);
             app.JButton.Text = 'J';
             app.JButton.FontSize = 48;
             app.JButton.Position = [593 317 90 97];

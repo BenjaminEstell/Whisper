@@ -1,13 +1,17 @@
-classdef Whisper < matlab.apps.AppBase
+classdef Whisper < matlab.apps.AppBase & handle
 
     % Properties that correspond to app components
     properties (Access = public)
         UIFigure            matlab.ui.Figure
-        versionLabel        matlab.ui.control.Label
+        VersionLabel        matlab.ui.control.Label
         Image               matlab.ui.control.Image
         BeginNewTestButton  matlab.ui.control.Button
-        test
-        practiceTest
+        test                Test
+        practiceTest        logical
+        testOptionSelection TestOptionSelection
+        patientData         PatientData
+        practiceTestView    
+        testReportView      TestReport
     end
 
     % Callbacks that handle component events
@@ -15,24 +19,11 @@ classdef Whisper < matlab.apps.AppBase
 
         % Button pushed function: BeginNewTestButton
         % Creates and configures the Test
-        function CreateTest(app, ~)
+        function createTest(app, ~)
             % Create a Test object
-            testObj = Test();
-            app.test = testObj;
+            app.test = Test(app, app.UIFigure, 0, 0, TestType.syllable);
             % Configure the Test
-            NavToTestOptions(app);
-        end
-
-        % Clears the UI and loads the Test Option Selection View
-        function NavToTestOptions(app)
-            % Clear contents of the UI
-            for ii = 1:length(app.UIFigure.Children)
-                app.UIFigure.Children(ii).Visible = false;
-            end
-
-            % Build Test Options View
-            testOptionSelectionPage = TestOptionSelection();
-            testOptionSelectionPage.createComponents(app.UIFigure, app);
+            toTestOptions(app);
         end
     end
 
@@ -56,6 +47,77 @@ classdef Whisper < matlab.apps.AppBase
             end
         end
 
+        function setPracticeTest(app, practiceTest)
+            app.practiceTest = practiceTest;
+        end
+
+        % Clears the UI and loads the Test Option Selection View
+        % Called when the user clicks "Begin New Test"
+        function toTestOptions(app)
+            % clear the current ui
+            while ~isempty(app.UIFigure.Children)
+                app.UIFigure.Children(1).delete();
+            end
+
+            % Build Test Options View
+            app.testOptionSelection = TestOptionSelection(app.UIFigure, app);
+        end
+
+        function toPatientData(app)
+            % Clear contents of the UI
+            app.testOptionSelection.delete();
+            app.patientData = PatientData(app.UIFigure, app);
+        end
+
+        function toTest(app)
+            % clear the current ui
+            while ~isempty(app.UIFigure.Children)
+                app.UIFigure.Children(1).delete();
+            end
+            app.patientData.delete();
+            % Build test UI
+            if (app.practiceTest)
+                app.practiceTestView = PracticeTest(app, app.UIFigure);
+                app.practiceTestView.playSounds(1);
+            else
+                app.test.runTest();
+            end
+        end
+
+        function runTest(app)
+            % clear the current ui
+            while ~isempty(app.UIFigure.Children)
+                app.UIFigure.Children(1).delete();
+            end
+            % Delete practice test
+            app.practiceTestView.delete();
+            app.test.runTest();
+        end
+
+        function toTestReport(app)
+            % Generate test report UI
+            app.testReportView = TestReport(app.UIFigure, app);
+            % generate the dataset from the test
+            app.test.generateDataset();
+        end
+
+        % Returns to the home screen
+        function returnHome(app)
+            % Delete Test obj
+            app.test.delete();
+
+            % Delete the test report view
+            app.testReportView.delete();
+            
+            % clear the current ui
+            while ~isempty(app.UIFigure.Children)
+                app.UIFigure.Children(1).delete();
+            end
+
+            % Construct Home view
+            app.createComponents(app.UIFigure);
+        end
+    
         % Creates the Whisper Landing Page View
         function createComponents(app, UIFigure)
             % Get the file path for locating images
@@ -64,7 +126,7 @@ classdef Whisper < matlab.apps.AppBase
 
             % Create BeginNewTestButton
             app.BeginNewTestButton = uibutton(app.UIFigure, 'push');
-            app.BeginNewTestButton.ButtonPushedFcn = createCallbackFcn(app, @CreateTest, true);
+            app.BeginNewTestButton.ButtonPushedFcn = createCallbackFcn(app, @createTest, true);
             app.BeginNewTestButton.FontSize = 18;
             app.BeginNewTestButton.Position = [376 199 250 45];
             app.BeginNewTestButton.Text = 'Begin New Test';
@@ -74,11 +136,11 @@ classdef Whisper < matlab.apps.AppBase
             app.Image.Position = [191 243 619 312];
             app.Image.ImageSource = fullfile(pathToMLAPP, '/UI/Images/Whisper Logo Gray.png');
 
-            % Create versionLabel
-            app.versionLabel = uilabel(app.UIFigure);
-            app.versionLabel.FontSize = 14;
-            app.versionLabel.Position = [477 67 47 25];
-            app.versionLabel.Text = 'v 1.0';
+            % Create VersionLabel
+            app.VersionLabel = uilabel(app.UIFigure);
+            app.VersionLabel.FontSize = 14;
+            app.VersionLabel.Position = [477 67 47 25];
+            app.VersionLabel.Text = 'v 1.0';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
@@ -86,7 +148,6 @@ classdef Whisper < matlab.apps.AppBase
 
         % Code that executes before app deletion
         function delete(app)
-
             % Delete UIFigure when app is deleted
             delete(app.UIFigure)
         end
