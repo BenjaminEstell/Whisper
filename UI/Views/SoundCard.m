@@ -33,6 +33,7 @@ classdef SoundCard < matlab.apps.AppBase
         function nextSound(app)
             app.SoundCardSoundLabel.Text = '/' + app.System.test.getCurrentSound().name + '/';
             app.SoundCardSoundCountLabel.Text = 'Sound ' + string(app.System.test.getCurrentSoundNumber()) + ' of ' + string(app.System.test.getNumSounds());
+            set(app.UIFigure, 'KeyPressFcn', @app.processSoundCardKeyPress);
         end
 
         % Handles the keyboard shortcut to begin trials
@@ -40,7 +41,7 @@ classdef SoundCard < matlab.apps.AppBase
             % KeyData       the value of the key that was pressed
         % Returns: Nothing
         function processSoundCardKeyPress(app, ~, KeyData)
-            if KeyData.Key == 'return'
+            if KeyData.Key == "return"
                 app.beginTrials();
             end
         end

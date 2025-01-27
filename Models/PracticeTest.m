@@ -29,7 +29,7 @@ classdef PracticeTest < Test & matlab.apps.AppBase
             testSound = Sound(string(randomNum), TestType.cnc, obj.numTrials);
             obj.sounds{end+1} = testSound;
             obj.currentSound = obj.sounds{1};
-            obj.currentSound = obj.currentSound.generateStimulusMatrix();
+            obj.currentSound.generateStimulusMatrix();
 
             obj.createTestComponents();
         end

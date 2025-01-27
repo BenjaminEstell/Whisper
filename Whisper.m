@@ -108,7 +108,7 @@ classdef Whisper < matlab.apps.AppBase & handle
 
             % Delete the test report view
             app.testReportView.delete();
-            
+
             % clear the current ui
             while ~isempty(app.UIFigure.Children)
                 app.UIFigure.Children(1).delete();
@@ -140,7 +140,7 @@ classdef Whisper < matlab.apps.AppBase & handle
             app.VersionLabel = uilabel(app.UIFigure);
             app.VersionLabel.FontSize = 14;
             app.VersionLabel.Position = [477 67 47 25];
-            app.VersionLabel.Text = 'v 1.0';
+            app.VersionLabel.Text = 'v 1.1';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

@@ -52,6 +52,18 @@ classdef Trial < matlab.apps.AppBase
             obj.playSounds();
         end
 
+        function nothing(app)
+        end
+
+        % Class destructor
+        function delete(app)
+            set(app.UIFigure, 'KeyPressFcn', @app.nothing);
+            while ~isempty(app.RecognitionPanel.Children)
+                app.RecognitionPanel.Children(1).delete();
+            end
+            app.RecognitionPanel.delete();
+        end
+
         % Keyboard shortcuts
         % Args
             % KeyData       the value of the key that was pressed
@@ -63,7 +75,7 @@ classdef Trial < matlab.apps.AppBase
             elseif KeyData.Key == 'f'
                 app.FButton.Value = true;
                 app.nextTrial();
-            elseif KeyData.Key == 'space'
+            elseif KeyData.Key == "space"
                 app.System.test.playSounds(app.currentTrial);
             end
         end
@@ -83,9 +95,10 @@ classdef Trial < matlab.apps.AppBase
                 
                 % Play sounds
                 app.System.test.playSounds(app.currentTrial);
+            else
+                % If there are no trials remaining
+                app.System.test.completeTrial();
             end
-            % If no trials remain, the Test directs the SoundCard to
-            % advance to the next Sound in the Test, deleting the Trial.
         end
 
         % Plays the sounds for the trial
@@ -163,7 +176,7 @@ classdef Trial < matlab.apps.AppBase
             % Create TestTrialCountLabel
             app.TestTrialCountLabel = uilabel(app.RecognitionPanel);
             app.TestTrialCountLabel.FontSize = 14;
-            app.TestTrialCountLabel.Position = [865 648 94 22];
+            app.TestTrialCountLabel.Position = [840 648 94 22];
             app.TestTrialCountLabel.Text = 'Trial ' + string(app.currentTrial) + ' of ' + string(app.numTrials);
         end
     end

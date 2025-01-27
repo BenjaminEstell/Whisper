@@ -71,6 +71,13 @@ classdef Test < handle
             app.patient.setPatientHearing(leftDevice, leftYears, rightDevice, rightYears);
         end
 
+        % ear takes the value "right" or "left to signify the ear
+        % args a-h correspond to the hearing threshold (in dB) level for
+        % 125Hz, 250 Hz, 500 Hz .... 8000Hz
+        function setPatientHearingThresholds(app, ear, a, b, c, d, e, f, g, h)
+            app.patient.setHearingThresholds(ear, a, b, c, d, e, f, g, h);
+        end
+
         function setTestMode(app, type)
             app.mode = type;
         end
@@ -146,23 +153,28 @@ classdef Test < handle
             % If we have finished the last trial, move on to the next sound
             if app.currentTrialNumber == app.numTrials
                 % generate the internal representation for this sound
-                app.currentSound = app.currentSound.generateInternalRepresentation();
+                app.currentSound.generateInternalRepresentation();
                 % save the Sound object back into the Sounds array
                 app.sounds{app.currentSoundNumber} = app.currentSound;
-                % delete the completed Trial
-                app.deleteTrial();
-                % if we have finished the last sound, end the test
-                if app.currentSoundNumber == app.numSounds
-                    app.testReport();
-                else
-                    % Otherwise, move on to the next Sound
-                    app.nextSound();
-                end
                 val = false;
             else
                 % otherwise, continue to the next trial  
                 app.currentTrialNumber = app.currentTrialNumber + 1;
                 val = true;
+            end
+        end
+
+        function completeTrial(app)
+            % if we have finished the last sound, end the test
+            if app.currentSoundNumber == app.numSounds
+                app.testReport();
+                % delete the completed Trial
+                app.deleteTrial();
+            else
+                % delete the completed Trial
+                app.deleteTrial();
+                % Otherwise, move on to the next Sound
+                app.nextSound();
             end
         end
 
@@ -211,14 +223,11 @@ classdef Test < handle
             % save the stimulus matrix as txt
             % save the response vector as txt
             % save the internal representation as txt
-            % save the original sound
-            % Remember chart labels
-                % x axis
-                % y axis
-                % title
+            % save the original sound as txt
             % Chart of the original sound as png
             % Chart of the internal representation as png
             % Chart of the response vector as png
+            % Difference chart as png
   
         function generateDataset(app)
             % Create dataset folder
@@ -242,7 +251,26 @@ classdef Test < handle
                 TimeWithLeftEarHearingDevice = app.patient.leftEarDeviceYears;
                 RightEarHearingDevice = app.patient.rightEarDevice;
                 TimeWithRightEarHearingDevice = app.patient.rightEarDeviceYears;
-                PatientTable = table(ID, DoB, Sex, LeftEarHearingDevice, TimeWithLeftEarHearingDevice, RightEarHearingDevice, TimeWithRightEarHearingDevice);
+                Left125Hz = app.patient.left125;
+                Left250Hz = app.patient.left250;
+                Left500Hz = app.patient.left500;
+                Left1000Hz = app.patient.left1000;
+                Left2000Hz = app.patient.left2000;
+                Left3000Hz = app.patient.left3000;
+                Left4000Hz = app.patient.left4000;
+                Left8000Hz = app.patient.left8000;
+                Right125Hz = app.patient.right125;
+                Right250Hz = app.patient.right250;
+                Right500Hz = app.patient.right500;
+                Right1000Hz = app.patient.right1000;
+                Right2000Hz = app.patient.right2000;
+                Right3000Hz = app.patient.right3000;
+                Right4000Hz = app.patient.right4000;
+                Right8000Hz = app.patient.right8000;
+
+                PatientTable = table(ID, DoB, Sex, LeftEarHearingDevice, TimeWithLeftEarHearingDevice, RightEarHearingDevice, TimeWithRightEarHearingDevice, ...
+                    Left125Hz, Left250Hz, Left500Hz, Left1000Hz, Left2000Hz, Left3000Hz, Left4000Hz, Left8000Hz, ...
+                    Right125Hz, Right250Hz, Right500Hz, Right1000Hz, Right2000Hz, Right3000Hz, Right4000Hz, Right8000Hz);
                 writetable(PatientTable, patientTablePath)
             
                 % Save Test Data
@@ -281,16 +309,17 @@ classdef Test < handle
                     match = rms(OGSound(1:sound.numFreqs)) / rms(internalRepresentation);
                     fig1 = figure('Visible','off');
                     HVSChart = axes(fig1);
-                    plot(HVSChart, x, abs(OGSound(1:sound.numFreqs)));
+                    plot(HVSChart, x, SegmentedSmooth(abs(OGSound(1:sound.numFreqs)), 30, 3));
                     legend(HVSChart, 'Human-Voiced Sound');
                     xlabel(HVSChart, "Frequency (Hz)");
                     ylabel(HVSChart, "Amplitude");
                     title(HVSChart, "Human Voiced Sound Frequency Components");
                     saveas(HVSChart, fullfile(soundPath, "HVS.png"), 'png');
+
                     % Save IR as png
                     fig2 = figure('Visible','off');
                     IRChart = axes(fig2);
-                    plot(IRChart, x, (abs(internalRepresentation).*match));
+                    plot(IRChart, x, SegmentedSmooth(abs(internalRepresentation), 30, 3).*match);
                     legend(IRChart, 'Internal Representation');
                     xlabel(IRChart, "Frequency (Hz)");
                     ylabel(IRChart, "Amplitude");
@@ -300,15 +329,15 @@ classdef Test < handle
                     % Save combined chart as png
                     fig3 = figure('Visible','off');
                     CombinedChart = axes(fig3);
-                    area(CombinedChart, x, (abs(internalRepresentation).*match), FaceColor='b', EdgeColor='b', FaceAlpha=0.3, EdgeAlpha=0.3);
+                    area(CombinedChart, x, (SegmentedSmooth(abs(internalRepresentation), 30, 3).*match), FaceColor='b', EdgeColor='b', FaceAlpha=0.3, EdgeAlpha=0.3);
                     hold(CombinedChart, "on");
-                    area(CombinedChart, x, abs(OGSound(1:sound.numFreqs)), FaceColor='r', EdgeColor='r', FaceAlpha=0.3, EdgeAlpha=0.3);
+                    area(CombinedChart, x, SegmentedSmooth(abs(OGSound(1:sound.numFreqs)), 30, 3), FaceColor='r', EdgeColor='r', FaceAlpha=0.3, EdgeAlpha=0.3);
                     legend(CombinedChart, 'Internal Representation', 'Human-Voiced Sound');
                     hold(CombinedChart, "off");
                     xlabel(CombinedChart, "Frequency (Hz)");
                     ylabel(CombinedChart, "Amplitude");
                     title(CombinedChart, "Human Voiced Sound and Internal Representation Frequency Components");
-                    saveas(CombinedChart, fullfile(soundPath, "CombinedChart.png"), 'png');
+                    saveas(CombinedChart, fullfile(soundPath, "AreaChart.png"), 'png');
             
                     % save responseVector as png
                     fig4 = figure('Visible','off');
@@ -318,8 +347,22 @@ classdef Test < handle
                     ylabel(responseVectorChart, "Patient Response (1=similar, -1=not similar)");
                     title(responseVectorChart, "Patient Responses");
                     saveas(responseVectorChart, fullfile(soundPath, "ResponseVector.png"), 'png');
-                    % Write back sound obj
-                    app.sounds{soundIdx} = sound;
+                    
+                    % save difference chart as png
+                    fig5 = figure('Visible', 'off');
+                    differenceChart = axes(fig5);
+                    scaledInternalRepresentation = SegmentedSmooth(abs(internalRepresentation(1:sound.numFreqs)).*match, 30, 3);
+                    scaledOriginalSound = SegmentedSmooth(abs(OGSound(1:sound.numFreqs)), 30, 3);
+                    diff = scaledOriginalSound - scaledInternalRepresentation;
+
+                    plot(differenceChart, x, diff, 'blue');
+                    hold(differenceChart, "on");
+                    horizontalLine = zeros(1, sound.numFreqs);
+                    plot(differenceChart, x, horizontalLine, '--');
+                    xlabel(differenceChart, "Frequency (Hz)");
+                    ylabel(differenceChart, "Amplitude");
+                    title(differenceChart, 'Difference between Internal Representation and Human-Voiced Sound');
+                    saveas(differenceChart, fullfile(soundPath, "DifferenceChart.png"), 'png');
                 end
             end
         end

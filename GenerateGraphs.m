@@ -22,61 +22,49 @@ match = rms(originalSound) / rms(internalRepresentation);
 internalRepresentation = abs(internalRepresentation).*match;
 
 % Smooth both sounds
-originalSoundSmooth1 = SegmentedSmooth(originalSound, 20, 2);
-internalRepresentationSmooth1 = SegmentedSmooth(internalRepresentation, 20, 2);
+originalSoundSmooth1 = SegmentedSmooth(originalSound, 30, 3);
+internalRepresentationSmooth1 = SegmentedSmooth(internalRepresentation, 30, 3);
 
 
 originalColor = "#B700FF";
 RCColor = "#D89B00";
 
-% figure(1);
-% x = 1:numFreqs;
-% area(x, originalSoundSmooth1, FaceColor=originalColor, EdgeColor=originalColor, FaceAlpha=0.7, EdgeAlpha=0.8);
-% hold on;
-% area(x, internalRepresentationSmooth1, FaceColor=RCColor, EdgeColor=RCColor, FaceAlpha=0.5, EdgeAlpha=0.8);
-% legend('Original Sound', 'RC Sound');
-% title("NH4 /da/")
-% xlabel("Frequency (Hz)");
-% ylabel("Amplitude");
-% hold off;
+figure(1);
+x = 1:numFreqs;
+area(x, originalSoundSmooth1, FaceColor='b', EdgeColor='b', FaceAlpha=0.3, EdgeAlpha=0.3);
+hold on;
+area(x, internalRepresentationSmooth1, FaceColor='r', EdgeColor='r', FaceAlpha=0.3, EdgeAlpha=0.3);
+legend('Original Sound', 'RC Sound');
+title("NH4 /da/")
+xlabel("Frequency (Hz)");
+ylabel("Amplitude");
+hold off;
 
 
-% Just for fun, let's make a chart of original sound - internal
-% representation
-% figure(2);
-% diff = originalSoundSmooth1 - internalRepresentationSmooth1;
-% plot(x, diff, 'blue');
-% hold on;
-% horizontalLine = zeros(numFreqs);
-% plot(x, horizontalLine, '--');
-% xlabel("Frequency (Hz)");
-% ylabel("Amplitude");
-% title("Difference between Original Sound and RC Sound (NH4 /da/)");
-% hold off;
+% Difference chart
+figure(2);
+diff = originalSoundSmooth1 - internalRepresentationSmooth1;
+plot(x, diff, 'blue');
+hold on;
+horizontalLine = zeros(numFreqs);
+plot(x, horizontalLine, '--');
+xlabel("Frequency (Hz)");
+ylabel("Amplitude");
+title("Difference between Original Sound and RC Sound (NH4 /da/)");
+hold off;
 
 
-
-% Make a series of 5 charts of stimuli
-pathToStimMatrix = DataFolder + PatientFolder + "\Sounds" + Sound + "\StimulusMatrix.txt";
-
-% stimulusMatrix = readmatrix(pathToStimMatrix);
-% for i= 1:5
-%     stimFrequencyDomain = imresize(stimulusMatrix(i, :)', [numFreqs 1], "nearest");
-%     freqSmooth = SegmentedSmooth(abs(stimFrequencyDomain), 20, 2);
-%     figure(i);
-%     plot(freqSmooth, "LineWidth", 2);
-% end
-
-
-% Make an RC chart
-figure(3);
-plot(SegmentedSmooth(internalRepresentation, 20, 2), "LineWidth", 2);
+% Smoothed chart
+figure(4)
+plot(SegmentedSmooth(internalRepresentation, 30, 3), "LineWidth", 2);
 
 % NH Charts
 figure(6);
-smooth2 = SegmentedSmooth(internalRepresentationSmooth1, 30, 2);
+% Plot the original sound, smoothed once
 plot(originalSoundSmooth1, 'black');
 hold on;
+smooth2 = SegmentedSmooth(internalRepresentationSmooth1, 30, 2);
+% Plot the reconstructed sound, smoothed once
 plot(smooth2, "--");
 hold off;
 xlabel("Frequency (Hz)", "FontSize",17);
@@ -84,7 +72,7 @@ ylabel("Amplitude", "FontSize", 17);
 lg = legend('Original Sound', 'Integrated Sound');
 fontsize(lg, 12, "points");
 title("/fa/", "FontSize", 17);
-set(gca, "FontSize", 14);
+set(gca, "FontSize", 14)
 
 % figure(7);
 % smooth2 = SegmentedSmooth(internalRepresentationSmooth1, 30, 2);

@@ -17,10 +17,12 @@ classdef TestReport < matlab.apps.AppBase
         SoundListBoxLabel             matlab.ui.control.Label
         ShowInternalRepresentationButton matlab.ui.control.CheckBox
         ShowHumanVoicedSoundButton    matlab.ui.control.CheckBox
+        DropDown                      matlab.ui.control.DropDown
         System                        Whisper
         currentSound                  Sound
         showIR                        logical
         showHVS                       logical
+        lg
     end
 
     methods
@@ -75,7 +77,7 @@ classdef TestReport < matlab.apps.AppBase
                     break;
                 end
             end
-            app.InternalRepresentationPanel.Title = value + " Internal Representation";
+            %app.InternalRepresentationPanel.Title = value + " Internal Representation";
 
             % Update graphs
             app.updatePlot();
@@ -105,33 +107,99 @@ classdef TestReport < matlab.apps.AppBase
             app.updatePlot();
         end
 
-        % Updates the test report axes
-        % Called whenever an axes control is toggled
-        function updatePlot(app)
-            % Get the list of x values
+        % Translates the chart selection into an enum
+        function type = getChartType(app)
+            value = app.DropDown.Value;
+            if strcmp(value, "Internal Representation vs Original Sound")
+                type = ChartType.comparison;
+            elseif strcmp(value, "Difference Chart")
+                type = ChartType.difference;
+            elseif strcmp(value, "Internal Representation Smoothed Chart")
+                type = ChartType.smoothed;
+            else
+                type = ChartType.comparison;
+            end
+        end
+
+        % Called when the comparison chart is selected and needs to be
+        % updated
+        function generateComparisonChart(app)
+            cla(app.UIAxes);
             x = 1:app.currentSound.numFreqs;
             OGSound = imresize(app.currentSound.humanVoicedSoundFrequencyDomain, [app.currentSound.numFreqs 1], "nearest");
             internalRepresentation = imresize(app.currentSound.internalRepresentation, [app.currentSound.numFreqs 1], "nearest");
             % Scale internal representation to match the OG sound
             match = rms(OGSound(1:app.currentSound.numFreqs)) / rms(internalRepresentation);
+            scaledInternalRepresentation = SegmentedSmooth(abs(internalRepresentation).*match, 30, 3);
+            scaledOriginalSound = SegmentedSmooth(abs(OGSound(1:app.currentSound.numFreqs)), 30, 3);
             if app.showIR && app.showHVS
                 % Display internal representation and human voiced sound
-                area(app.UIAxes, x, (abs(internalRepresentation).*match), FaceColor='b', EdgeColor='b', FaceAlpha=0.3, EdgeAlpha=0.3);
+                area(app.UIAxes, x, scaledInternalRepresentation, FaceColor='b', EdgeColor='b', FaceAlpha=0.3, EdgeAlpha=0.3);
                 hold(app.UIAxes, "on");
-                area(app.UIAxes, x, abs(OGSound(1:app.currentSound.numFreqs)), FaceColor='r', EdgeColor='r', FaceAlpha=0.3, EdgeAlpha=0.3);
-                legend(app.UIAxes, 'Internal Representation', 'Human-Voiced Sound');
+                area(app.UIAxes, x, scaledOriginalSound, FaceColor='r', EdgeColor='r', FaceAlpha=0.3, EdgeAlpha=0.3);
+                app.lg = legend(app.UIAxes, 'Internal Representation', 'Human-Voiced Sound');
+                title(app.UIAxes, 'Internal Representation vs Human-Voiced Sound');
                 hold(app.UIAxes, "off");
             elseif app.showIR && ~app.showHVS
                 % Display only the internal representation
-                area(app.UIAxes, x, (abs(internalRepresentation).*match), FaceColor='b', EdgeColor='b', FaceAlpha=0.3, EdgeAlpha=0.3);
-                legend(app.UIAxes, 'Internal Representation');
+                area(app.UIAxes, x, scaledInternalRepresentation, FaceColor='b', EdgeColor='b', FaceAlpha=0.3, EdgeAlpha=0.3);
+                app.lg = legend(app.UIAxes, 'Internal Representation');
+                title(app.UIAxes, 'Internal Representation');
             elseif app.showHVS && ~ app.showIR
                 % Display only the human voiced sound
-                area(app.UIAxes, x, abs(OGSound(1:app.currentSound.numFreqs)), FaceColor='r', EdgeColor='r', FaceAlpha=0.3, EdgeAlpha=0.3);
-                legend(app.UIAxes, 'Human-Voiced Sound');
+                area(app.UIAxes, x, scaledOriginalSound, FaceColor='r', EdgeColor='r', FaceAlpha=0.3, EdgeAlpha=0.3);
+                app.lg = legend(app.UIAxes, 'Human-Voiced Sound');
+                title(app.UIAxes, 'Human-Voiced Sound');
             else
                 % Clear all plots from the axes
                 cla(app.UIAxes);
+                title(app.UIAxes, '');
+            end
+        end
+
+        function generateSmoothedChart(app)
+            cla(app.UIAxes);
+            internalRepresentation = imresize(app.currentSound.internalRepresentation, [app.currentSound.numFreqs 1], "nearest");
+            x = 1:app.currentSound.numFreqs;
+            set(app.lg, 'visible', 'off');
+            plot(app.UIAxes, x, SegmentedSmooth(abs(internalRepresentation), 30, 3), "LineWidth", 2);
+            title(app.UIAxes, 'Internal Representation');
+        end
+
+        function generateDifferenceChart(app)
+            cla(app.UIAxes);
+            x = 1:app.currentSound.numFreqs;
+            OGSound = imresize(app.currentSound.humanVoicedSoundFrequencyDomain, [app.currentSound.numFreqs 1], "nearest");
+            internalRepresentation = imresize(app.currentSound.internalRepresentation, [app.currentSound.numFreqs 1], "nearest");
+            % Scale internal representation to match the OG sound
+            match = rms(OGSound(1:app.currentSound.numFreqs)) / rms(internalRepresentation);
+            scaledInternalRepresentation = SegmentedSmooth(abs(internalRepresentation).*match, 30, 3);
+            scaledOriginalSound = SegmentedSmooth(abs(OGSound(1:app.currentSound.numFreqs)), 30, 3);
+            diff = scaledOriginalSound - scaledInternalRepresentation;
+            set(app.lg, 'visible', 'off');
+            plot(app.UIAxes, x, diff, 'blue');
+            hold(app.UIAxes, "on");
+            horizontalLine = zeros(1, app.currentSound.numFreqs);
+            plot(app.UIAxes, x, horizontalLine, '--');
+            xlabel(app.UIAxes, "Frequency (Hz)");
+            ylabel(app.UIAxes, "Amplitude");
+            title(app.UIAxes, 'Difference between Internal Representation and Human-Voiced Sound');
+            hold(app.UIAxes, "off");
+        end
+
+        % Updates the test report axes
+        % Called whenever an axes control is toggled
+        function updatePlot(app, ~)
+            % Get the list of x values
+            chartType = app.getChartType();
+            if chartType == ChartType.comparison
+                app.generateComparisonChart();
+            elseif chartType == ChartType.smoothed
+                app.generateSmoothedChart();
+            elseif chartType == ChartType.difference
+                app.generateDifferenceChart();
+            else
+                app.generateComparisonChart();
             end
         end
 
@@ -193,9 +261,8 @@ classdef TestReport < matlab.apps.AppBase
 
             % Create bInternalRepresentationPanel
             app.InternalRepresentationPanel = uipanel(app.TestReportPanel);
-            app.InternalRepresentationPanel.Title = string(app.currentSound.name) + ' Internal Representation';
             app.InternalRepresentationPanel.FontSize = 14;
-            app.InternalRepresentationPanel.Position = [190 18 770 602];
+            app.InternalRepresentationPanel.Position = [190 18 770 620];
 
             % Create frequency chart
             app.UIAxes = uiaxes(app.InternalRepresentationPanel);
@@ -233,6 +300,14 @@ classdef TestReport < matlab.apps.AppBase
             app.ShowHumanVoicedSoundButton.FontSize = 14;
             app.ShowHumanVoicedSoundButton.Position = [40 10 200 22];
             app.ShowHumanVoicedSoundButton.Value = true;
+
+            % Create chart selection dropdown
+            app.DropDown = uidropdown(app.InternalRepresentationPanel);
+            app.DropDown.Items = {'Internal Representation vs Original Sound', 'Difference Chart', 'Internal Representation Smoothed Chart'};
+            app.DropDown.Position = [5 585 262 22];
+            app.DropDown.Value = 'Internal Representation vs Original Sound';
+            app.DropDown.ValueChangedFcn = createCallbackFcn(app, @updatePlot, true);
+
 
             % Displays the test report for the first sound
             app.toggleLabel();
