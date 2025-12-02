@@ -10,20 +10,16 @@ classdef Patient < handle
         leftEarDeviceYears  int32
         rightEarDevice      string
         rightEarDeviceYears int32
-        left125             int32
         left250
         left500
         left1000
         left2000
-        left3000
         left4000
         left8000
-        right125             int32
         right250
         right500
         right1000
         right2000
-        right3000
         right4000
         right8000
     end
@@ -43,25 +39,21 @@ classdef Patient < handle
             obj.rightEarDeviceYears = rightYears;
         end
 
-        function setHearingThresholds(app, ear, a, b, c, d, e, f, g, h)
-            if strcmp(ear, 'right')
-                app.left125 = a;
-                app.left250 = b;
-                app.left500 = c;
-                app.left1000 = d;
-                app.left2000 = e;
-                app.left3000 = f;
-                app.left4000 = g;
-                app.left8000 = h;
-            elseif strcmp(ear, 'left')
-                app.right125 = a;
-                app.right250 = b;
-                app.right500 = c;
-                app.right1000 = d;
-                app.right2000 = e;
-                app.right3000 = f;
-                app.right4000 = g;
-                app.right8000 = h;
+        function setHearingThresholds(app, ear, a, b, c, d, e, f)
+            if strcmp(ear, 'left')
+                app.left250 = a;
+                app.left500 = b;
+                app.left1000 = c;
+                app.left2000 = d;
+                app.left4000 = e;
+                app.left8000 = f;
+            elseif strcmp(ear, 'right')
+                app.right250 = a;
+                app.right500 = b;
+                app.right1000 = c;
+                app.right2000 = d;
+                app.right4000 = e;
+                app.right8000 = f;
             end
         end
     end

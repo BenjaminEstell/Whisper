@@ -30,8 +30,6 @@ classdef PatientData < matlab.apps.AppBase
         HzLabel_12                     matlab.ui.control.Label
         HzEditField_15                 matlab.ui.control.NumericEditField
         HzLabel_11                     matlab.ui.control.Label
-        HzEditField_14                 matlab.ui.control.NumericEditField
-        HzLabel_10                     matlab.ui.control.Label
         HzEditField_13                 matlab.ui.control.NumericEditField
         HzEditFieldLabel_4             matlab.ui.control.Label
         HzEditField_12                 matlab.ui.control.NumericEditField
@@ -40,14 +38,10 @@ classdef PatientData < matlab.apps.AppBase
         HzLabel_8                      matlab.ui.control.Label
         HzEditField_10                 matlab.ui.control.NumericEditField
         HzLabel_7                      matlab.ui.control.Label
-        HzEditField_9                  matlab.ui.control.NumericEditField
-        HzEditFieldLabel_3             matlab.ui.control.Label
         HzEditField_8                  matlab.ui.control.NumericEditField
         HzLabel_6                      matlab.ui.control.Label
         HzEditField_7                  matlab.ui.control.NumericEditField
         HzLabel_5                      matlab.ui.control.Label
-        HzEditField_6                  matlab.ui.control.NumericEditField
-        HzLabel_4                      matlab.ui.control.Label
         HzEditField_5                  matlab.ui.control.NumericEditField
         HzEditFieldLabel_2             matlab.ui.control.Label
         HzEditField_4                  matlab.ui.control.NumericEditField
@@ -56,8 +50,6 @@ classdef PatientData < matlab.apps.AppBase
         HzLabel_2                      matlab.ui.control.Label
         HzEditField_2                  matlab.ui.control.NumericEditField
         HzLabel                        matlab.ui.control.Label
-        HzEditField                    matlab.ui.control.NumericEditField
-        HzEditFieldLabel               matlab.ui.control.Label
 
         System                              Whisper
     end
@@ -78,8 +70,8 @@ classdef PatientData < matlab.apps.AppBase
         function configurePatientData(app)
             app.System.test.createPatient(app.PatientIDEditField.Value, app.DateofBirthDatePicker.Value, app.SexDropDown.Value);
             app.System.test.setPatientHearing(app.LeftEarHearingDeviceDropDown.Value, app.LeftEarEditField.Value, app.RightEarHearingDeviceDropDown.Value, app.RightEarEditField.Value);
-            app.System.test.setPatientHearingThresholds('left', app.HzEditField.Value, app.HzEditField_2.Value, app.HzEditField_3.Value, app.HzEditField_4.Value, app.HzEditField_5.Value, app.HzEditField_6.Value, app.HzEditField_7.Value, app.HzEditField_8.Value);
-            app.System.test.setPatientHearingThresholds('right', app.HzEditField_9.Value, app.HzEditField_10.Value, app.HzEditField_11.Value, app.HzEditField_12.Value, app.HzEditField_13.Value, app.HzEditField_14.Value, app.HzEditField_15.Value, app.HzEditField_16.Value);
+            app.System.test.setPatientHearingThresholds('left', app.HzEditField_2.Value, app.HzEditField_3.Value, app.HzEditField_4.Value, app.HzEditField_5.Value, app.HzEditField_7.Value, app.HzEditField_8.Value);
+            app.System.test.setPatientHearingThresholds('right', app.HzEditField_10.Value, app.HzEditField_11.Value, app.HzEditField_12.Value, app.HzEditField_13.Value, app.HzEditField_15.Value, app.HzEditField_16.Value);
         end
 
         % Value changed function: LeftEarHearingDeviceDropDown
@@ -231,18 +223,7 @@ classdef PatientData < matlab.apps.AppBase
             app.RightEarEditField.Position = [680 290 175 35];
             app.RightEarEditField.FontSize = 14;
 
-            % Create HzEditFieldLabel
-            app.HzEditFieldLabel = uilabel(app.PatientDataPanel);
-            app.HzEditFieldLabel.HorizontalAlignment = 'right';
-            app.HzEditFieldLabel.FontSize = 18;
-            app.HzEditFieldLabel.Position = [49 175 62 23];
-            app.HzEditFieldLabel.Text = '125 Hz';
-
-            % Create HzEditField
-            app.HzEditField = uieditfield(app.PatientDataPanel, 'numeric');
-            app.HzEditField.HorizontalAlignment = 'center';
-            app.HzEditField.FontSize = 18;
-            app.HzEditField.Position = [126 175 100 24];
+            
 
             % Create LeftEarLabel
             app.LeftEarLabel = uilabel(app.PatientDataPanel);
@@ -258,7 +239,7 @@ classdef PatientData < matlab.apps.AppBase
             app.HearingThresholdLevelsLabel.Position = [259 211 453 61];
             app.HearingThresholdLevelsLabel.Text = 'Hearing Threshold Levels (dB)';
 
-            % Create HzLabel
+           % Create HzLabel
             app.HzLabel = uilabel(app.PatientDataPanel);
             app.HzLabel.HorizontalAlignment = 'right';
             app.HzLabel.FontSize = 18;
@@ -301,27 +282,14 @@ classdef PatientData < matlab.apps.AppBase
             app.HzEditFieldLabel_2 = uilabel(app.PatientDataPanel);
             app.HzEditFieldLabel_2.HorizontalAlignment = 'right';
             app.HzEditFieldLabel_2.FontSize = 18;
-            app.HzEditFieldLabel_2.Position = [274 177 72 23];
+            app.HzEditFieldLabel_2.Position = [274 145 72 23];
             app.HzEditFieldLabel_2.Text = '2000 Hz';
 
             % Create HzEditField_5
             app.HzEditField_5 = uieditfield(app.PatientDataPanel, 'numeric');
             app.HzEditField_5.HorizontalAlignment = 'center';
             app.HzEditField_5.FontSize = 18;
-            app.HzEditField_5.Position = [361 177 100 24];
-
-            % Create HzLabel_4
-            app.HzLabel_4 = uilabel(app.PatientDataPanel);
-            app.HzLabel_4.HorizontalAlignment = 'right';
-            app.HzLabel_4.FontSize = 18;
-            app.HzLabel_4.Position = [274 147 72 23];
-            app.HzLabel_4.Text = '3000 Hz';
-
-            % Create HzEditField_6
-            app.HzEditField_6 = uieditfield(app.PatientDataPanel, 'numeric');
-            app.HzEditField_6.HorizontalAlignment = 'center';
-            app.HzEditField_6.FontSize = 18;
-            app.HzEditField_6.Position = [361 147 100 24];
+            app.HzEditField_5.Position = [361 145 100 24];
 
             % Create HzLabel_5
             app.HzLabel_5 = uilabel(app.PatientDataPanel);
@@ -348,19 +316,6 @@ classdef PatientData < matlab.apps.AppBase
             app.HzEditField_8.HorizontalAlignment = 'center';
             app.HzEditField_8.FontSize = 18;
             app.HzEditField_8.Position = [361 87 100 24];
-
-            % Create HzEditFieldLabel_3
-            app.HzEditFieldLabel_3 = uilabel(app.PatientDataPanel);
-            app.HzEditFieldLabel_3.HorizontalAlignment = 'right';
-            app.HzEditFieldLabel_3.FontSize = 18;
-            app.HzEditFieldLabel_3.Position = [517 175 62 23];
-            app.HzEditFieldLabel_3.Text = '125 Hz';
-
-            % Create HzEditField_9
-            app.HzEditField_9 = uieditfield(app.PatientDataPanel, 'numeric');
-            app.HzEditField_9.HorizontalAlignment = 'center';
-            app.HzEditField_9.FontSize = 18;
-            app.HzEditField_9.Position = [594 175 100 24];
 
             % Create HzLabel_7
             app.HzLabel_7 = uilabel(app.PatientDataPanel);
@@ -405,27 +360,14 @@ classdef PatientData < matlab.apps.AppBase
             app.HzEditFieldLabel_4 = uilabel(app.PatientDataPanel);
             app.HzEditFieldLabel_4.HorizontalAlignment = 'right';
             app.HzEditFieldLabel_4.FontSize = 18;
-            app.HzEditFieldLabel_4.Position = [742 177 72 23];
+            app.HzEditFieldLabel_4.Position = [742 145 72 23];
             app.HzEditFieldLabel_4.Text = '2000 Hz';
 
             % Create HzEditField_13
             app.HzEditField_13 = uieditfield(app.PatientDataPanel, 'numeric');
             app.HzEditField_13.HorizontalAlignment = 'center';
             app.HzEditField_13.FontSize = 18;
-            app.HzEditField_13.Position = [829 177 100 24];
-
-            % Create HzLabel_10
-            app.HzLabel_10 = uilabel(app.PatientDataPanel);
-            app.HzLabel_10.HorizontalAlignment = 'right';
-            app.HzLabel_10.FontSize = 18;
-            app.HzLabel_10.Position = [742 147 72 23];
-            app.HzLabel_10.Text = '3000 Hz';
-
-            % Create HzEditField_14
-            app.HzEditField_14 = uieditfield(app.PatientDataPanel, 'numeric');
-            app.HzEditField_14.HorizontalAlignment = 'center';
-            app.HzEditField_14.FontSize = 18;
-            app.HzEditField_14.Position = [829 147 100 24];
+            app.HzEditField_13.Position = [829 145 100 24];
 
             % Create HzLabel_11
             app.HzLabel_11 = uilabel(app.PatientDataPanel);

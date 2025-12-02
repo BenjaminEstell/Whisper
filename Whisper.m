@@ -20,6 +20,10 @@ classdef Whisper < matlab.apps.AppBase & handle
         % Button pushed function: BeginNewTestButton
         % Creates and configures the Test
         function createTest(app, ~)
+            if exist(app.test)
+                % Delete Test obj
+                app.test.delete();
+            end
             % Create a Test object
             app.test = Test(app, app.UIFigure, 0, 0, TestType.syllable);
             % Configure the Test
@@ -103,9 +107,6 @@ classdef Whisper < matlab.apps.AppBase & handle
 
         % Returns to the home screen
         function returnHome(app)
-            % Delete Test obj
-            app.test.delete();
-
             % Delete the test report view
             app.testReportView.delete();
 

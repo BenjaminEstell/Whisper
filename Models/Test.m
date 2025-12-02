@@ -74,8 +74,8 @@ classdef Test < handle
         % ear takes the value "right" or "left to signify the ear
         % args a-h correspond to the hearing threshold (in dB) level for
         % 125Hz, 250 Hz, 500 Hz .... 8000Hz
-        function setPatientHearingThresholds(app, ear, a, b, c, d, e, f, g, h)
-            app.patient.setHearingThresholds(ear, a, b, c, d, e, f, g, h);
+        function setPatientHearingThresholds(app, ear, a, b, c, d, e, f)
+            app.patient.setHearingThresholds(ear, a, b, c, d, e, f);
         end
 
         function setTestMode(app, type)
@@ -137,7 +137,7 @@ classdef Test < handle
             % for each random number, construct a Sound object
             for ii = 1:size(randomNumberSet, 1)
                 newSound = Sound(string(randomNumberSet(ii)), TestType.cnc, app.numTrials);
-                newSound = newSound.setName(lookup(cncMap, newSound.name));
+                newSound.setName(lookup(cncMap, newSound.name));
                 % store the new Sound in the Test
                 app.sounds{end+1} = newSound;
             end
@@ -251,26 +251,22 @@ classdef Test < handle
                 TimeWithLeftEarHearingDevice = app.patient.leftEarDeviceYears;
                 RightEarHearingDevice = app.patient.rightEarDevice;
                 TimeWithRightEarHearingDevice = app.patient.rightEarDeviceYears;
-                Left125Hz = app.patient.left125;
                 Left250Hz = app.patient.left250;
                 Left500Hz = app.patient.left500;
                 Left1000Hz = app.patient.left1000;
                 Left2000Hz = app.patient.left2000;
-                Left3000Hz = app.patient.left3000;
                 Left4000Hz = app.patient.left4000;
                 Left8000Hz = app.patient.left8000;
-                Right125Hz = app.patient.right125;
                 Right250Hz = app.patient.right250;
                 Right500Hz = app.patient.right500;
                 Right1000Hz = app.patient.right1000;
                 Right2000Hz = app.patient.right2000;
-                Right3000Hz = app.patient.right3000;
                 Right4000Hz = app.patient.right4000;
                 Right8000Hz = app.patient.right8000;
 
                 PatientTable = table(ID, DoB, Sex, LeftEarHearingDevice, TimeWithLeftEarHearingDevice, RightEarHearingDevice, TimeWithRightEarHearingDevice, ...
-                    Left125Hz, Left250Hz, Left500Hz, Left1000Hz, Left2000Hz, Left3000Hz, Left4000Hz, Left8000Hz, ...
-                    Right125Hz, Right250Hz, Right500Hz, Right1000Hz, Right2000Hz, Right3000Hz, Right4000Hz, Right8000Hz);
+                    Left250Hz, Left500Hz, Left1000Hz, Left2000Hz, Left4000Hz, Left8000Hz, ...
+                    Right250Hz, Right500Hz, Right1000Hz, Right2000Hz, Right4000Hz, Right8000Hz);
                 writetable(PatientTable, patientTablePath)
             
                 % Save Test Data

@@ -58,12 +58,12 @@ classdef Sound < handle
          function stimulusTimeDomain = getStimulusTimeDomain(obj, currentTrial)
             % Get representation in frequency domain and plot stimuli in
             % frequency domain
-            % stimFrequencyDomain = imresize(obj.stimulusMatrix(currentTrial, :)', [obj.numFreqs 1], "nearest");
-            % figure(1);
-            % plot(abs(stimFrequencyDomain));
-            % title('Computer-Generated Stimulus');
-            % xlabel('Frequency (Hz)');
-            % ylabel('Amplitude');
+            stimFrequencyDomain = imresize(obj.stimulusMatrix(currentTrial, :)', [obj.numFreqs 1], "nearest");
+            figure(1);
+            plot(abs(stimFrequencyDomain));
+            title('Computer-Generated Stimulus');
+            xlabel('Frequency (Hz)');
+            ylabel('Amplitude');
 
             % Convert stimulus into the time domain and play
             stim = ifft(obj.stimulusMatrix(currentTrial, :));
@@ -83,12 +83,12 @@ classdef Sound < handle
             stimulusTimeDomain = real(stim4);
             
             % Plot human voiced sound in frequency domain
-            % figure(3);
-            % spect = imresize(abs(obj.humanVoicedSoundFrequencyDomain), [obj.numFreqs 1], "nearest");
-            % plot(spect(1:obj.numFreqs));
-            % title('Human-Voiced Sound');
-            % xlabel('Frequency (Hz)');
-            % ylabel('Amplitude');
+            figure(2);
+            spect = imresize(abs(obj.humanVoicedSoundFrequencyDomain), [obj.numFreqs 1], "nearest");
+            plot(spect(1:obj.numFreqs));
+            title('Human-Voiced Sound');
+            xlabel('Frequency (Hz)');
+            ylabel('Amplitude');
          end
 
          % Generates the stimulus matrix for the sound

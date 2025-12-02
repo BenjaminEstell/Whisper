@@ -480,10 +480,13 @@ classdef TestOptionSelection < matlab.apps.AppBase
             app.System.test.setSavePath(path);
 
             % Display folder on button
-            folders = split(path, '\');
-            folder = folders(end);
-            app.BrowseButton.Text = '\' + string(folder);
-            app.savedPathChosen = true;
+            if ~isempty(path)
+                folders = split(path, '\');
+                folder = folders(end);
+                app.BrowseButton.Text = '\' + string(folder);
+                app.savedPathChosen = true;
+            end
+            
             % Update buttons
             app.updateNextButton();
             app.updateTestTypePanel();
