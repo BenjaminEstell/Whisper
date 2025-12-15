@@ -94,13 +94,39 @@ classdef Sound < handle
          % Generates the stimulus matrix for the sound
          % Called by the trial constructor, when the trial is created
          % Returns: the sound object
-         function generateStimulusMatrix(obj)   
+         function generateStimulusMatrix(obj)
+            decible_options = [-10, -5, 0, 5, 10];
             obj.stimulusMatrix = -100 * ones(obj.numTrials, obj.numSamples);
             binnum = GetFreqBins(obj.numSamples, obj.numFreqs, 0, obj.numSamples);
             binWidth = 12;
             for jj = 1:obj.numTrials
                 obj.stimulusMatrix(jj, :) = obj.humanVoicedSoundFrequencyDomain;
         
+                % Add new random frequencies
+                for ii = 1:length(obj.formantFrequencies)
+                    % pick a random frequency bin to modify. If the difference between the random frequency and
+                    % formant frequency is greater than 1500 Hz, pick a new one
+                    binDifference = 2000;
+                    while binDifference > 1500
+                        randBin = floor(rand() * min(obj.numFreqs-(binWidth*2 + 1), 3500))+binWidth+1;
+                        binDifference = abs(randBin - obj.formantFrequencies(ii));
+                    end
+      
+                    % Choose a random decible scaling from the options
+                    dbScaling = decible_options(floor(rand() * 4) + 1);
+                    % getAmplitudeMultiplier
+                    multiplier = obj.getAmplitudeMultiplier(dbScaling);
+
+                    % set the amplitude of the new frequency, plus the binWidth frequencies on either side with a random
+                    % collection of frequency binWidth*2 + 1 frequencies
+                    randBinFreqs = randBin-binWidth:randBin+binWidth;
+                    peakFreqs= obj.formantFrequencies(ii)-binWidth:obj.formantFrequencies(ii)+binWidth;
+                    for kk = 1:binWidth*2 + 1
+                        obj.stimulusMatrix(jj, binnum==randBinFreqs(kk)) = obj.stimulusMatrix(jj, binnum==peakFreqs(kk)) * multiplier;
+                    end
+                end
+
+                % Move the formants to random new frequencies
                 for ii = 1:length(obj.formantFrequencies)
                     randBin = floor(rand() * min(obj.numFreqs-(binWidth*2 + 1), 3500))+binWidth+1;
                     % swap the amplitude of the formant frequency, plus the binWidth frequencies on either side with a random
@@ -198,6 +224,12 @@ classdef Sound < handle
              % sortedLocations
              % save formant frequencies in obj.formatFrequencies
              obj.formantFrequencies = sortedLocations(1:n);
+         end
+
+         % Calculates the multiplier needed to scale the sound's amplitude
+         % by a decible amount
+         function multiplier = getAmplitudeMultiplier(~, decibles)
+             multiplier = 10.^(decibles / 20);
          end
 
     end
